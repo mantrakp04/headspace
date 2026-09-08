@@ -1,0 +1,29 @@
+.oxlintrc.json
+  s_d48a3a21aacdcb::t_e7d8f3645417e0 33
+components/ui/dialog.tsx
+  s_d48a3a21aacdcb::t_e7d8f3645417e0 102
+README.md
+  s_d48a3a21aacdcb::t_e7d8f3645417e0 67
+desktop/src/virtual-table.tsx
+  s_d48a3a21aacdcb::t_e7d8f3645417e0 5
+components/ui/button.tsx
+  s_d48a3a21aacdcb::t_e7d8f3645417e0 58
+package-lock.json
+  s_d48a3a21aacdcb::t_eebefd3d3d191a 3718
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "41b4590ef6d7f253868e4a7e654d844fba98eb6c",
+  "prompts": {},
+  "sessions": {
+    "s_d48a3a21aacdcb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0836c-6134-7050-9eab-65198a1ba71d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
