@@ -64,7 +64,7 @@ For a repeatable 10,000-row UI check, run `npm run desktop:dev -- --port 4383` a
 
 Original Headspace skin © 2000 Microsoft Corporation; skin design credited to CF / Carolyn Farino. Original bitmaps were decoded from the archived [Headspace.wmz](https://w2krepo.somnolescent.net/Windows%20Media%20Player/Skins/Headspace.wmz). The original WMS/JavaScript is not executed. `desktop/scripts/import-skin.py` reproduces the documented bitmap color-key decoding.
 
-The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is archived in `desktop/artwork-studies` and is excluded from the app bundle.
+The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is preserved in commit `01081d5`.
 
 The earlier Sunroom web prototype remains in the root web-app directories. The local desktop build uses `desktop/index.html` and does not publish or depend on that hosted site.
 

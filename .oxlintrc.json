@@ -30,8 +30,7 @@
     "dist/**",
     "coverage/**",
     "next-env.d.ts",
-    "components/ui/**",
-    "hooks/use-mobile.ts"
+    "components/ui/**"
   ],
   "rules": {
     "no-array-constructor": "error",

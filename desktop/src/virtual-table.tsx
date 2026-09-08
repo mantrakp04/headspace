@@ -2,7 +2,7 @@ import { useRef, type KeyboardEvent } from 'react';
 import { tableFeatures, useTable, type ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-export const features = tableFeatures({});
+const features = tableFeatures({});
 export type MediaColumn<T extends object> = ColumnDef<typeof features, T>;
 
 export function VirtualTable<T extends { uri: string }>({
