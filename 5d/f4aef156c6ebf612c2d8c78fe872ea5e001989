@@ -1,0 +1,199 @@
+README.md
+  s_5280df830806bc::t_fd8acceb02185c 1-56
+.openai/hosting.json
+  s_5280df830806bc::t_e7e6953553b1b0 3-4
+  s_5280df830806bc::t_6c055f96b8cbea 1-2,5
+tsconfig.json
+  s_5280df830806bc::t_fd8acceb02185c 4-18,30
+  s_5280df830806bc::t_18f68e36a5634c 19-20
+  s_5280df830806bc::t_e19c094b7ba980 1-3,21-29,31
+app/page.tsx
+  s_5280df830806bc::t_09aba1ecf84417 2-4
+  s_5280df830806bc::t_f0b91c6078cb62 1
+lib/spotify.test.ts
+  s_5280df830806bc::t_fd8acceb02185c 7-24,28-33,35-63,66-98,106-112,142-143,149-159,163-175,177-181,184-205,210-212,232-233,236-242,248-249,267-277,281-288,290-297,299-302,307-314,316-317
+  s_5280df830806bc::t_18f68e36a5634c 1-6,25-27,34,64-65,99,101-105,113,134-140,144-147,160-161,176,182,206-208,234,243-246,278,280,289,298,303-304,306,315,318
+  s_5280df830806bc::t_f19c365682e7da 100,122-124,141,148,162,183,209,220,235,247,258-263,279,305
+  s_5280df830806bc::t_5cfcc8f535fe1a 114-121,125-133,213-219,221-231,250-257,264-266
+components/music-app.tsx
+  s_5280df830806bc::t_08655969768643 1-2,5,41-42,49-50,66,74,85,118,147,176,185-200,203-226,237,243,253-255,261,270-271,282,296-298,310,315-316,337,351-352,365,379,383-384,386,414,434,455-456,488-489,503,516,542-543,557,1720
+  s_5280df830806bc::t_09aba1ecf84417 6-40,43-48,51-65,67-73,75-84,86-117,119-146,148-159,164-175,177-184,201-202,227-235,238-242,244-249,251-252,256-260,262,264-269,272,274-281,283-295,301-309,311-314,317-336,338-339,341-350,353-364,366-378,380,382,388-391,394-400,402-413,415-433,435-454,457-487,490-502,504-515,517-541,544-556,558-932,938-1158,1160-1170,1172-1173,1175-1383,1385-1386,1388-1457,1459-1590,1594-1682,1684-1719
+  s_5280df830806bc::t_6899ea50cc1849 3-4,236,250,263,273,299-300,340,381,385,387,392-393,401,1159,1171,1174,1384,1387,1458,1683
+  s_5280df830806bc::t_fd8acceb02185c 160-163,933-937,1591-1593
+.gitignore
+  s_5280df830806bc::t_6899ea50cc1849 39-41
+  s_5280df830806bc::t_dde944914c7b95 1-38
+app/layout.tsx
+  s_5280df830806bc::t_09aba1ecf84417 5-17
+  s_5280df830806bc::t_f0b91c6078cb62 2-4
+  s_5280df830806bc::t_b88b1312eef848 1,18
+hooks/use-spotify.ts
+  s_5280df830806bc::t_ad2dac745a16a5 1-2,19,48-52,78-93,102-104,111-113,132-135,184,191,200,221-224,233-234,250-251,265,284,338,347-348
+  s_5280df830806bc::t_09aba1ecf84417 3-18,20-47,53-77,94-101,105-110,114-131,136-183,185-190,192-199,201-220,225-232,235-249,252-264,266-283,285-337,339-346
+.oxlintrc.json
+  s_5280df830806bc::t_6899ea50cc1849 32-34
+  s_5280df830806bc::t_ce5a1f6fdc5c28 1-31,35-58
+package.json
+  s_5280df830806bc::t_18f68e36a5634c 2-15
+  s_5280df830806bc::t_0f54a99c431839 1,16-57
+lib/spotify.ts
+  s_5280df830806bc::t_09aba1ecf84417 1-2,6-41,44-65,67-69,71-87,89-92,95-110,113-121,125-143,145-154,156-182,184-194,196-213,218-222,224-236,244-245,252-255,257-274,281-282,284-294,298-318,320-325,329-333,337-341,344-358,366-373,377-379
+  s_5280df830806bc::t_f0b91c6078cb62 3-5,43,66,70,88,93-94,111-112,122-124,144,155,183,195,214-216,223,237-242,246-251,256,275-280,283,295-297,319,334-336,342-343,359-365,374
+  s_5280df830806bc::t_9e8f0560f8d63f 42,217,243,375-376,380-384
+  s_5280df830806bc::t_fd8acceb02185c 326-328
+app/globals.css
+  s_5280df830806bc::t_09aba1ecf84417 6-1872
+  s_5280df830806bc::t_ab02d03d36f6d1 1-5
+.oxfmtrc.json
+  s_5280df830806bc::t_aad191f9bac808 1-13
+components.json
+  s_5280df830806bc::t_7655ca0b664d3e 1-25
+components/ui/accordion.tsx
+  s_5280df830806bc::t_64f5b400904b68 1-78
+components/ui/alert-dialog.tsx
+  s_5280df830806bc::t_e355180f4f6427 1-187
+components/ui/alert.tsx
+  s_5280df830806bc::t_74ae090e295783 1-76
+components/ui/aspect-ratio.tsx
+  s_5280df830806bc::t_da0bbef6b992d9 1-22
+components/ui/attachment.tsx
+  s_5280df830806bc::t_0eaf4520bdd9c9 1-207
+components/ui/avatar.tsx
+  s_5280df830806bc::t_63d79ccddfcffa 1-109
+components/ui/badge.tsx
+  s_5280df830806bc::t_bf7396bf68de46 1-52
+components/ui/breadcrumb.tsx
+  s_5280df830806bc::t_160f7bbcc25344 1-122
+components/ui/bubble.tsx
+  s_5280df830806bc::t_09180531c8636a 1-128
+components/ui/button-group.tsx
+  s_5280df830806bc::t_7f88f28b231ed2 1-87
+components/ui/button.tsx
+  s_5280df830806bc::t_d82059c1db81bb 1-58
+components/ui/calendar.tsx
+  s_5280df830806bc::t_d5fd6084f7fb44 1-231
+components/ui/card.tsx
+  s_5280df830806bc::t_8a12b20f619426 1-103
+components/ui/carousel.tsx
+  s_5280df830806bc::t_c5fa7d1f05e197 1-242
+components/ui/chart.tsx
+  s_5280df830806bc::t_2b1028ecd2c084 1-373
+components/ui/checkbox.tsx
+  s_5280df830806bc::t_7c9111e85a17f6 1-28
+components/ui/collapsible.tsx
+  s_5280df830806bc::t_5a09ef856c152a 1-21
+components/ui/combobox.tsx
+  s_5280df830806bc::t_80f84e3d979f32 1-300
+components/ui/command.tsx
+  s_5280df830806bc::t_5eb9ecff817632 1-193
+components/ui/context-menu.tsx
+  s_5280df830806bc::t_7b5403a357959f 1-272
+components/ui/dialog.tsx
+  s_5280df830806bc::t_1b80523b651ef4 1-159
+components/ui/direction.tsx
+  s_5280df830806bc::t_76e414da5ac178 1-6
+components/ui/drawer.tsx
+  s_5280df830806bc::t_2f3eb14e4e5c42 1-228
+components/ui/dropdown-menu.tsx
+  s_5280df830806bc::t_2221c5c48e3999 1-272
+components/ui/empty.tsx
+  s_5280df830806bc::t_5fa416c1eeaf27 1-104
+components/ui/field.tsx
+  s_5280df830806bc::t_2ca021d7724220 1-238
+components/ui/hover-card.tsx
+  s_5280df830806bc::t_cb2c602de713a0 1-51
+components/ui/input-group.tsx
+  s_5280df830806bc::t_7d6a16dc707725 1-158
+components/ui/input-otp.tsx
+  s_5280df830806bc::t_2b851c8c538aed 1-86
+components/ui/input.tsx
+  s_5280df830806bc::t_c3a03e7e87606e 1-20
+components/ui/item.tsx
+  s_5280df830806bc::t_024b7c9af51739 1-201
+components/ui/kbd.tsx
+  s_5280df830806bc::t_c25ae18138a40c 1-26
+components/ui/label.tsx
+  s_5280df830806bc::t_462d1f5583507b 1-20
+components/ui/marker.tsx
+  s_5280df830806bc::t_25a9e507c7528b 1-71
+components/ui/menubar.tsx
+  s_5280df830806bc::t_49173c38ea3290 1-284
+components/ui/message-scroller.tsx
+  s_5280df830806bc::t_2222aed20928b2 1-130
+components/ui/message.tsx
+  s_5280df830806bc::t_14e7cca1ad43ef 1-92
+components/ui/native-select.tsx
+  s_5280df830806bc::t_ea82609d248827 1-65
+components/ui/navigation-menu.tsx
+  s_5280df830806bc::t_c9e1dd337f85d8 1-171
+components/ui/pagination.tsx
+  s_5280df830806bc::t_195c5ea4a554da 1-133
+components/ui/popover.tsx
+  s_5280df830806bc::t_87edca3a1239e1 1-90
+components/ui/progress.tsx
+  s_5280df830806bc::t_c29189d787ac19 1-83
+components/ui/radio-group.tsx
+  s_5280df830806bc::t_10ba7d3067b456 1-38
+components/ui/resizable.tsx
+  s_5280df830806bc::t_856addad755d2a 1-50
+components/ui/scroll-area.tsx
+  s_5280df830806bc::t_a1ac2eceed783a 1-55
+components/ui/select.tsx
+  s_5280df830806bc::t_392092db7c441d 1-202
+components/ui/separator.tsx
+  s_5280df830806bc::t_5fbced2f3fccde 1-25
+components/ui/sheet.tsx
+  s_5280df830806bc::t_f4ad6499a84478 1-137
+components/ui/sidebar.tsx
+  s_5280df830806bc::t_bf7aa83eb34939 1-723
+components/ui/skeleton.tsx
+  s_5280df830806bc::t_07ffc0bc484c64 1-13
+components/ui/slider.tsx
+  s_5280df830806bc::t_5923c35c301bdc 1-52
+components/ui/spinner.tsx
+  s_5280df830806bc::t_25bfd8018011e8 1-16
+components/ui/switch.tsx
+  s_5280df830806bc::t_4082e87146829f 1-32
+components/ui/table.tsx
+  s_5280df830806bc::t_26ed272be300a9 1-116
+components/ui/tabs.tsx
+  s_5280df830806bc::t_71d9cf882eb19e 1-82
+components/ui/textarea.tsx
+  s_5280df830806bc::t_49da41f3822210 1-18
+components/ui/toast.tsx
+  s_5280df830806bc::t_012f2d0c254c27 1-229
+components/ui/toggle-group.tsx
+  s_5280df830806bc::t_8330af62a42253 1-89
+components/ui/toggle.tsx
+  s_5280df830806bc::t_11887120bb0aca 1-45
+components/ui/tooltip.tsx
+  s_5280df830806bc::t_5e1d4c12d745f6 1-66
+hooks/use-mobile.ts
+  s_5280df830806bc::t_9cf67414638431 1-21
+lib/utils.ts
+  s_5280df830806bc::t_03f1bc5a45300c 1-6
+next.config.ts
+  s_5280df830806bc::t_ec53982c21d017 1-5
+package-lock.json
+  s_5280df830806bc::t_73835cbcaf40c1 1-10023
+public/favicon.svg
+  s_5280df830806bc::t_ec98c8fbeb1b66 1-6
+vite.config.ts
+  s_5280df830806bc::t_0b1d954b85d0e6 1-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5df4aef156c6ebf612c2d8c78fe872ea5e001989",
+  "prompts": {},
+  "sessions": {
+    "s_5280df830806bc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a082de-a8d1-7c81-8f6d-9065ca52a1b3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
