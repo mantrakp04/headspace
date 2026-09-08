@@ -1,0 +1,51 @@
+/* The originals are cast parts: cut rims, concave seats, and raised lettering. */
+.skin-button.control-transport,
+.skin-button.control-gold,
+.skin-button.control-window,
+.skin-button.control-utility {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.skin-button.control-transport::before,
+.skin-button.control-gold::before {
+  content: none;
+}
+.skin-button.control-transport > svg,
+.skin-button.control-gold > svg,
+.skin-button.control-window > svg,
+.skin-button.control-utility > svg {
+  width: 100%;
+  height: 100%;
+  filter: none;
+  transform: none;
+}
+.skin-button .control-face {
+  transform-origin: 12px 12px;
+}
+.skin-button.control-transport:hover .control-face,
+.skin-button.control-gold:hover .control-face {
+  filter: brightness(1.12) saturate(1.08);
+}
+.skin-button.control-transport:active .control-face,
+.skin-button.control-gold:active .control-face {
+  transform: translate(0.35px, 0.55px) scale(0.97);
+  filter: brightness(0.8);
+}
+.skin-button.control-window:hover .relief-face,
+.skin-button.control-utility:hover .relief-face {
+  stroke: #baffdb;
+}
+.skin-button.control-window:active .control-relief,
+.skin-button.control-utility:active .control-relief {
+  filter: brightness(0.82);
+}
+.skin-button.control-utility > svg {
+  overflow: visible;
+}
+
+.skin-button.control-window:hover .relief-face {
+  fill: #baffdb;
+}

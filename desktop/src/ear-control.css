@@ -1,0 +1,32 @@
+.skin-button.control-ear {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.skin-button.control-ear > svg.ear-control-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: none;
+}
+
+.right-ear .ear-control-face .ear-grip-shell {
+  transform: translateX(18px) scaleX(-1);
+}
+
+.skin-button.control-ear:hover > svg.ear-control-face {
+  filter: brightness(1.12) saturate(1.08);
+}
+
+.skin-button.control-ear:active:not(:disabled) > svg.ear-control-face {
+  transform: none;
+  filter: brightness(0.9);
+}
+
+.skin-button.control-ear:disabled > svg.ear-control-face {
+  opacity: 0.5;
+}

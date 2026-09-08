@@ -302,17 +302,69 @@ void test('catalog parsing accepts current and legacy playlist fields and unavai
   );
   assert.equal(spotify.formatTime(185000), '3:05');
 });
-void test('selecting a song beyond the first 100 items includes its playback offset', async () => {
+
+void test('desktop authorization opens externally and exchanges the registered loopback callback', async () => {
   const spotify = await fresh();
-  const items = spotify.tracks(
-    Array.from({ length: 180 }, (_, i) => ({
-      ...trackFixture,
-      uri: `spotify:track:${i}`,
-    })),
+  let external = '';
+  await spotify.authorize('0123456789abcdef0123456789abcdef', {
+    redirect: 'http://127.0.0.1:4382/callback',
+    scope: 'user-library-read',
+    open: (url) => {
+      external = url;
+    },
+  });
+  assert.equal(destination, '');
+  const auth = new URL(external);
+  assert.equal(
+    auth.searchParams.get('redirect_uri'),
+    'http://127.0.0.1:4382/callback',
   );
-  const selected = items[145];
-  assert.ok(selected);
-  const window = spotify.playbackWindow(selected, items);
-  assert.ok(window.includes(selected.uri));
-  assert.ok(window.length <= 100);
+  assert.equal(auth.searchParams.get('scope'), 'user-library-read');
+  location.search =
+    '?code=desktop-code&state=' + auth.searchParams.get('state');
+  mock.method(
+    globalThis,
+    'fetch',
+    async (
+      _url: Parameters<typeof fetch>[0],
+      init?: Parameters<typeof fetch>[1],
+    ) => {
+      assert.ok(init?.body instanceof URLSearchParams);
+      assert.equal(
+        init.body.get('redirect_uri'),
+        'http://127.0.0.1:4382/callback',
+      );
+      assert.equal(init.body.get('code'), 'desktop-code');
+      assert.equal(init.body.has('client_secret'), false);
+      return response({
+        access_token: 'desktop-access',
+        refresh_token: 'desktop-refresh',
+        expires_in: 3600,
+      });
+    },
+  );
+  assert.equal(await spotify.finishAuthorization(), true);
+  assert.equal(await spotify.accessToken(), 'desktop-access');
+});
+
+void test('a cancelled desktop sign-in can be retried in the same app process', async () => {
+  const spotify = await fresh();
+  location.search = '?error=access_denied';
+  await assert.rejects(spotify.finishAuthorization(), /cancelled/);
+  let external = '';
+  await spotify.authorize('0123456789abcdef0123456789abcdef', {
+    open: (url) => {
+      external = url;
+    },
+  });
+  location.search =
+    '?code=retry&state=' + new URL(external).searchParams.get('state');
+  mock.method(globalThis, 'fetch', async () =>
+    response({
+      access_token: 'retry-access',
+      refresh_token: 'retry-refresh',
+      expires_in: 3600,
+    }),
+  );
+  assert.equal(await spotify.finishAuthorization(), true);
 });

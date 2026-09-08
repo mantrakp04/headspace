@@ -39,3 +39,6 @@ next-env.d.ts
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Native desktop bundle
+/desktop/build/

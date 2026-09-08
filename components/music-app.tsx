@@ -362,7 +362,9 @@ export function MusicApp() {
             : view.kind === 'collection' && view.collection.kind === 'artist'
               ? 'album'
               : null;
-      let parsedTracks = kind ? [] : tracks(page.items);
+      let parsedTracks = kind
+        ? []
+        : tracks(page.items, typeof page.offset === 'number' ? page.offset : 0);
       if (view.kind === 'collection' && view.collection.kind === 'album')
         parsedTracks = parsedTracks.map((t) => ({
           ...t,
@@ -431,7 +433,9 @@ export function MusicApp() {
             : view.kind === 'collection' && view.collection.kind === 'artist'
               ? 'album'
               : null;
-      let added = kind ? [] : tracks(page.items);
+      let added = kind
+        ? []
+        : tracks(page.items, typeof page.offset === 'number' ? page.offset : 0);
       if (view.kind === 'collection' && view.collection.kind === 'album')
         added = added.map((t) => ({
           ...t,
@@ -555,6 +559,23 @@ export function MusicApp() {
       setAddBusy(false);
     }
   }
+  const playFromTable = (items: Track[], index: number) =>
+    spotify.play(
+      items[index],
+      items === results.tracks &&
+        view.kind === 'collection' &&
+        (view.collection.kind === 'album' ||
+          view.collection.kind === 'playlist')
+        ? view.collection.uri
+        : undefined,
+      items,
+      items === results.tracks &&
+        (view.kind === 'liked' ||
+          (view.kind === 'collection' && view.collection.kind === 'show'))
+        ? results.next
+        : null,
+      index,
+    );
   const trackTable = (items: Track[], compact = false) => (
     <div className={`track-list ${compact ? 'compact' : ''}`}>
       {!compact && (
@@ -574,16 +595,7 @@ export function MusicApp() {
           <IconButton
             label={`Play ${t.name}`}
             disabled={!t.playable || spotify.busy}
-            onClick={() =>
-              void spotify.play(
-                t,
-                view.kind === 'collection' &&
-                  ['album', 'playlist'].includes(view.collection.kind)
-                  ? view.collection.uri
-                  : undefined,
-                items,
-              )
-            }
+            onClick={() => void playFromTable(items, index)}
           >
             <span className="track-index">
               {currentTrack?.uri === t.uri && spotify.playback.playing ? (
@@ -599,7 +611,7 @@ export function MusicApp() {
             <span>
               <button
                 className="track-title"
-                onClick={() => void spotify.play(t, undefined, items)}
+                onClick={() => void playFromTable(items, index)}
                 disabled={!t.playable}
               >
                 {t.name}

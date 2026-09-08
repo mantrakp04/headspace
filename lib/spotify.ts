@@ -12,6 +12,7 @@ export type Track = {
   album: string;
   duration: number;
   playable: boolean;
+  contextPosition?: number;
   url: string;
 };
 export type Collection = {
@@ -135,11 +136,11 @@ export function parsePlayback(value: unknown): Playback {
     updatedAt: Date.now(),
   };
 }
-export function tracks(value: unknown): Track[] {
-  return list(value).flatMap((v) => {
+export function tracks(value: unknown, offset = 0): Track[] {
+  return list(value).flatMap((v, index) => {
     const o = object(v);
     const t = parseTrack(o.track ?? o.item ?? v);
-    return t ? [t] : [];
+    return t ? [{ ...t, contextPosition: offset + index }] : [];
   });
 }
 export function collections(
@@ -169,6 +170,7 @@ export function hasSession() {
 }
 export function disconnect() {
   sessionGeneration++;
+  callbackRequest = null;
   sessionStorage.removeItem(tokenKey);
   sessionStorage.removeItem(pendingKey);
 }
@@ -180,7 +182,16 @@ function random() {
     b.toString(16).padStart(2, '0'),
   ).join('');
 }
-export async function authorize(clientId: string) {
+export async function authorize(
+  clientId: string,
+  options: {
+    redirect?: string;
+    open?: (url: string) => void | Promise<void>;
+    scope?: string;
+  } = {},
+) {
+  callbackRequest = null;
+  const callback = options.redirect ?? redirectUri();
   if (!/^[a-f0-9]{32}$/i.test(clientId.trim()))
     throw new Error('Enter the 32-character Client ID from your Spotify app.');
   const verifier = random(),
@@ -198,20 +209,22 @@ export async function authorize(clientId: string) {
     JSON.stringify({
       verifier,
       state,
-      redirect: redirectUri(),
+      redirect: callback,
       created: Date.now(),
     }),
   );
   const query = new URLSearchParams({
     client_id: clientId.trim(),
     response_type: 'code',
-    redirect_uri: redirectUri(),
+    redirect_uri: callback,
     code_challenge_method: 'S256',
     code_challenge: challenge,
     state,
-    scope: scopes,
+    scope: options.scope ?? scopes,
   });
-  window.location.assign('https://accounts.spotify.com/authorize?' + query);
+  const url = 'https://accounts.spotify.com/authorize?' + query;
+  if (options.open) await options.open(url);
+  else window.location.assign(url);
 }
 async function exchange(body: URLSearchParams, previousRefresh = '') {
   const generation = sessionGeneration;
@@ -371,14 +384,4 @@ export function pagePath(value: unknown): string | null {
 export function formatTime(ms: number) {
   const seconds = Math.max(0, Math.floor(ms / 1000));
   return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
-}
-
-export function playbackWindow(track: Track, candidates?: Track[]): string[] {
-  const available = candidates?.filter((t) => t.playable).map((t) => t.uri) || [
-    track.uri,
-  ];
-  const index = available.indexOf(track.uri);
-  if (index < 0) return [track.uri];
-  const start = Math.max(0, index - 20);
-  return available.slice(start, start + 100);
 }

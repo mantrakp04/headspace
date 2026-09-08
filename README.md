@@ -1,56 +1,75 @@
-# Sunroom
+# Headspace for macOS
 
-A Headspace-inspired personal Spotify player built with React, Vinext, and Spotify's Web Playback SDK. The app uses original artwork and its own name.
+A personal local Spotify player based on the original lime-green **Headspace Windows Media Player skin**. The app uses a borderless transparent Cocoa window, the original skin geometry, original bitmap artwork, and a React interface rendered by WKWebView.
 
-## Run locally
+## Open
 
-Use Node 24 or newer for the native TypeScript tests.
+The installed app is `~/Applications/Headspace.app`.
+
+- Purple controls: previous, play/pause, stop, next, visualization.
+- Speaker arrows: open or close the sliding panels.
+- Button below the seek bar: full music library.
+- **View → Original Size / 150% / 200%**: change window size.
+- Drag the forehead to move the window. **View → Always on Top** pins it above other windows.
+
+Audio streams inside the app through Spotify's Web Playback SDK and macOS WebKit/FairPlay. No Spotify application, copied client, Apple Events permission, or separate browser player is used. A Spotify Premium account and internet connection are required. The SDK registers a Spotify Connect device named **Headspace**. Playback starts when you choose a track; opening Headspace does not take over another device automatically.
+
+## Spotify connection
+
+The personal developer app is configured for PKCE OAuth using `http://127.0.0.1:4382/callback`. Open the library's account button to connect. The streaming scope is included. No client secret is used. Public Client ID: `05ac56334649404c8878e72b6aefac9a`.
+
+Access and refresh tokens persist in the Mac Keychain. The browser opens Spotify authorization and returns to a server bound only to `127.0.0.1`. OAuth state and the code verifier are checked before token exchange. Do not add tokens, client secrets, or Spotify account files to this repository.
+
+Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders control the decorative visualizer; they do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
+
+## Build
+
+Requires Apple Silicon macOS 14+, Xcode command-line tools, and Node 24+.
 
 ```sh
 npm install
-npm run dev -- --host 127.0.0.1 --port 4382
+npm run desktop:build
 ```
 
-Open `http://127.0.0.1:4382/`. The app redirects `localhost` to the numeric loopback address Spotify permits.
+The complete signed local bundle is written to `~/Library/Caches/Headspace/Build/Headspace.app`. Cache storage avoids iCloud adding Finder metadata that invalidates signatures in the Documents folder.
 
-## Connect Spotify
+With Headspace closed, install the built bundle:
 
-1. Create an app at https://developer.spotify.com/dashboard with Web API and Web Playback SDK enabled.
-2. Register the exact redirect shown in Sunroom's Connect Spotify panel. For local use this is `http://127.0.0.1:4382/`. For the private deployment it is `https://sunroom-listening.barrellube.chatgpt.site/`.
-3. Add your Spotify account to the app's allowed users when required. A Spotify Premium subscription is required for full playback.
-4. Paste the public Client ID into Sunroom and continue through Spotify's authorization screen. No client secret is needed.
+```sh
+mkdir -p "$HOME/Applications/Headspace.app"
+rsync -a --delete "$HOME/Library/Caches/Headspace/Build/Headspace.app/" "$HOME/Applications/Headspace.app/"
+xattr -cr "$HOME/Applications/Headspace.app"
+codesign --force --sign - --identifier local.headspace.player "$HOME/Applications/Headspace.app"
+codesign --verify --deep --strict "$HOME/Applications/Headspace.app"
+```
 
-OAuth uses PKCE with a random state and ten-minute sign-in expiry. The Client ID is saved in local storage. Access and refresh tokens stay in session storage for the current tab and are cleared on disconnect. Requests go directly from the browser to Spotify. The server stores no Spotify credentials.
+This is a personal local bundle; it has an ad-hoc signature, not an App Store or notarized distribution build.
 
-Browser playback uses Spotify's DRM-enabled SDK. If an embedded browser does not support it, use a supported full browser such as Chrome or Safari, or choose an existing Spotify Connect device from Devices. Connecting alone does not transfer or start playback.
+## Lists and verification
 
-## Included
-
-- Search songs, albums, artists, playlists, and podcasts.
-- Browse saved playlists, albums, followed artists, shows, liked songs, and recent listening with pagination.
-- Open album tracks, artist albums, podcast episodes, and accessible playlist items.
-- Full-track playback, pause, skip, seek, shuffle, repeat, volume, and device selection.
-- Create private playlists, add tracks, like or unlike songs, and add to the Spotify queue.
-- Sleep timer while the browser tab remains open.
-- Responsive layouts, keyboard-operable controls, loading states, request errors, and quota backoff.
-
-## Spotify limitations
-
-This is a personal client, not a complete replacement for Spotify's official app. The public APIs do not provide its personalized Home feed, lyrics, AI DJ, or offline downloads. Development-mode access and allowed endpoints can vary by app. Some playlist contents are visible only to owners and collaborators. djay has its own Spotify integration; installing djay does not provide this app with Spotify API access.
-
-Uses the 2026 library URI endpoints and playlist `/items` endpoints. Search uses Spotify's current ten-item page limit.
-
-## Verification
+TanStack Table v9 owns row and column models. TanStack Virtual renders the visible rows plus five rows of overscan in tracks, collections, queue, and the playlist picker. Fixed row heights match the original skin. Panel visibility, visualization, visual effect settings, and playback volume persist locally. Rows retain unique identities for repeated songs, and arrow keys, Page Up/Down, Home, and End navigate the virtualized grid.
 
 ```sh
 npm test
 npm run typecheck
 npm run lint
-npm run build
+npm run desktop:build
 ```
 
-Tests exercise OAuth PKCE, mismatched or expired sign-in state, refresh coalescing, disconnect races, API authentication retry, quota backoff, response parsing, empty playback responses, and selection past the first 100 tracks. Spotify network responses are mocked. Signed-in audio and browser interaction require a real Spotify account and have not been verified by these tests.
+The 23 tests cover OAuth/session handling, API errors, catalog parsing, playback context, paginated song lists, duplicate tracks, queue targeting, transport, repeat/shuffle state, and SDK change notifications. Spotify HTTP and SDK responses are mocked. See [Spotify queue behavior and implementation](docs/spotify-queues.md) for the analysis, API limits, and verification notes.
 
-Lint targets application code. The unmodified generated Shadcn catalog and generated `use-mobile` hook are excluded because the starter has existing lint violations. TypeScript still checks them.
+For a repeatable 10,000-row UI check, run `npm run desktop:dev -- --port 4383` and open `http://127.0.0.1:4383/list-benchmark.html`. At 280px height it mounts 15 rows, including overscan. End jumps to Track 10000; selecting it shows its name. Switching the dataset resets the grid to 20 rows. This fixture is excluded from the packaged production entry point.
 
-The generated dependency tree reported 11 npm audit findings at setup. No forced dependency upgrades were applied.
+## Artwork
+
+Original Headspace skin © 2000 Microsoft Corporation; skin design credited to CF / Carolyn Farino. Original bitmaps were decoded from the archived [Headspace.wmz](https://w2krepo.somnolescent.net/Windows%20Media%20Player/Skins/Headspace.wmz). The original WMS/JavaScript is not executed. `desktop/scripts/import-skin.py` reproduces the documented bitmap color-key decoding.
+
+The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is archived in `desktop/artwork-studies` and is excluded from the app bundle.
+
+The earlier Sunroom web prototype remains in the root web-app directories. The local desktop build uses `desktop/index.html` and does not publish or depend on that hosted site.
+
+### Visualizations
+
+The gold button opens seven choices: classic bars, liquid chrome, aurora, blank screen, hyperspace, light ribbons, and star flight. Speed, glow, color, and freeze controls persist locally. Five effects use `vgpu` and WebGPU; classic bars and the compatibility fallback use Canvas. Effects are generative: Spotify does not expose decoded audio for spectrum analysis. Reduced motion and frozen scenes stop advancing, and hidden views skip rendering.
+
+With the desktop dev server on port 4383, `/skin-preview.html` inspects the complete skin at multiple scales/backgrounds and `/gpu-check.html` renders all five GPU effects. `node --experimental-transform-types desktop/src/visualizer-check.ts` verifies shader compilation and changing, nonblack GPU output. Both browser fixtures are excluded from the app build.

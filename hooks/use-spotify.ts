@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  playbackWindow,
   accessToken,
   api,
   disconnect,
@@ -17,25 +16,8 @@ import {
   type Track,
 } from '@/lib/spotify';
 
-type WebPlayer = {
-  connect(): Promise<boolean>;
-  disconnect(): void;
-  activateElement(): Promise<void>;
-  setVolume(volume: number): Promise<void>;
-  addListener(name: string, callback: (data: unknown) => void): void;
-};
-declare global {
-  interface Window {
-    onSpotifyWebPlaybackSDKReady?: () => void;
-    Spotify?: {
-      Player: new (options: {
-        name: string;
-        getOAuthToken: (callback: (token: string) => void) => void;
-        volume: number;
-      }) => WebPlayer;
-    };
-  }
-}
+import { loadSDK, type WebPlayer } from '@/lib/spotify-player';
+import { resolvePlayback, nextRepeat } from '@/lib/playback-selection';
 const emptyPlayback = (): Playback => ({
   track: null,
   playing: false,
@@ -45,40 +27,6 @@ const emptyPlayback = (): Playback => ({
   device: null,
   updatedAt: Date.now(),
 });
-let sdkLoading: Promise<void> | null = null;
-function loadSDK() {
-  if (window.Spotify) return Promise.resolve();
-  if (sdkLoading) return sdkLoading;
-  sdkLoading = new Promise<void>((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      sdkLoading = null;
-      reject(
-        new Error(
-          'The browser player could not load. You can still use an available Spotify device.',
-        ),
-      );
-    }, 15000);
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      window.clearTimeout(timer);
-      resolve();
-    };
-    const script = document.createElement('script');
-    script.src = 'https://sdk.scdn.co/spotify-player.js';
-    script.async = true;
-    script.onerror = () => {
-      window.clearTimeout(timer);
-      script.remove();
-      sdkLoading = null;
-      reject(
-        new Error(
-          'The Spotify player failed to load. Check your connection or choose another device.',
-        ),
-      );
-    };
-    document.head.appendChild(script);
-  });
-  return sdkLoading;
-}
 export function useSpotify() {
   const [connected, setConnected] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -220,7 +168,13 @@ export function useSpotify() {
   );
   const target = playback.device?.id || browserDevice;
   const deviceQuery = target ? '?device_id=' + encodeURIComponent(target) : '';
-  async function play(track?: Track, context?: string, trackList?: Track[]) {
+  async function play(
+    track?: Track,
+    context?: string,
+    trackList?: Track[],
+    next: string | null = null,
+    index?: number,
+  ) {
     if (!connected) return false;
     if (track && !track.playable) {
       setError('This track is not available for playback on this account.');
@@ -236,16 +190,19 @@ export function useSpotify() {
         throw new Error(
           'Choose an available Spotify device, or wait for the browser player to finish connecting.',
         );
+      const items = trackList ?? (track ? [track] : []);
       const body = context
-        ? {
-            context_uri: context,
-            ...(track ? { offset: { uri: track.uri } } : {}),
-          }
+        ? await resolvePlayback({ kind: 'context', uri: context, track }, api)
         : track
-          ? {
-              uris: playbackWindow(track, trackList),
-              offset: { uri: track.uri },
-            }
+          ? await resolvePlayback(
+              {
+                kind: 'tracks',
+                items,
+                index: index ?? items.indexOf(track),
+                next,
+              },
+              api,
+            )
           : undefined;
       await api('/me/player/play' + deviceQuery, 'PUT', body);
     });
@@ -306,11 +263,7 @@ export function useSpotify() {
       command(() =>
         api(
           '/me/player/repeat?state=' +
-            (playback.repeat === 'off'
-              ? 'context'
-              : playback.repeat === 'context'
-                ? 'track'
-                : 'off') +
+            nextRepeat(playback.repeat) +
             (target ? '&device_id=' + encodeURIComponent(target) : ''),
           'PUT',
         ),
