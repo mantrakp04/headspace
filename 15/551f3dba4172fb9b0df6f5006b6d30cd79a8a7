@@ -1,0 +1,87 @@
+.dockerignore
+  s_457c9e73363fd7::t_e7c8c378929c69 1-17
+.github/workflows/deploy-site.yml
+  s_457c9e73363fd7::t_fd866442918481 1-29
+.gitignore
+  s_457c9e73363fd7::t_ef90dd981034f7 19-20
+README.md
+  s_457c9e73363fd7::t_59d65aadc0a4a8 50,52-56,101
+apps/desktop/native/Headspace.swift
+  s_457c9e73363fd7::t_7287e5cfd79a5c 66,187
+apps/desktop/release-notes/1.0.2.md
+  s_457c9e73363fd7::t_523942b4ccf7b8 1-5
+apps/desktop/release.json
+  s_457c9e73363fd7::t_9a7f92edebfb6d 2-3
+apps/desktop/src/bridge.ts
+  s_457c9e73363fd7::t_63beb26935661f 7,11-18,70-72
+apps/desktop/vite.config.ts
+  s_457c9e73363fd7::t_afc93afda8739a 6
+apps/site/Dockerfile
+  s_457c9e73363fd7::t_5435794044a434 1-18
+apps/site/package.json
+  s_457c9e73363fd7::t_ef98db035aa147 10-11,15-16,18
+apps/site/player-build.ts
+  s_457c9e73363fd7::t_aac5d2ded513eb 1-69
+apps/site/player/index.html
+  s_457c9e73363fd7::t_a3f0c89dffff43 1-12
+apps/site/player/main.tsx
+  s_457c9e73363fd7::t_4ce2cd358b3646 1-55
+apps/site/player/preview-player.test.ts
+  s_457c9e73363fd7::t_359bbeaffd4fc4 1-152
+apps/site/player/preview-player.ts
+  s_457c9e73363fd7::t_8f7f3aa6ed0260 1-256
+apps/site/player/preview-tracks.ts
+  s_457c9e73363fd7::t_71de2dad986d46 1-46
+apps/site/src/components/player-preview.tsx
+  s_457c9e73363fd7::t_f455bb8da8e865 1-44
+apps/site/src/components/theme-picker.tsx
+  s_457c9e73363fd7::t_1ec72b78eea116 1-26
+apps/site/src/landing-themes.ts
+  s_457c9e73363fd7::t_13995163c4be9e 1-32
+apps/site/src/routes/index.tsx
+  s_457c9e73363fd7::t_46581cb48e88c5 1-2,4,8-50,53,55-60,62,65-87,89-91,93-97,99-111,113-119,121-122
+apps/site/src/styles.css
+  s_457c9e73363fd7::t_bf0af4d269c492 2-6,10,13-36,42-369,375-405,411-412,415-422,425-428,430-434,437,439-447,449-451,453-455,457-458,460-461,463-464,466-467,469-470,472-475,477-481,486-488,490-492,494-507,509,511-512,514-519,522,524-531,533,535-537,539,541-543,545-571,573-576,578-580,582-587,589-595,597-603,605-606,608-610,612-614,616-620,622,625-633,635-647,651,653-654,657-659,661,663-667,670-671,673-675,678,681-683,687-688,691-693,695-696,698-700,702-703,705-706,708-709,711,714-717,719-720,722-723,725-728,730-731,733-734,736-737,739-740,744-752
+apps/site/tsconfig.json
+  s_457c9e73363fd7::t_95f3611797ab73 4
+apps/site/turbo.json
+  s_457c9e73363fd7::t_d665c9b2df4678 1-13
+apps/site/vercel.json
+  s_457c9e73363fd7::t_1824adf4b7e698 1-4
+apps/site/vite.config.ts
+  s_457c9e73363fd7::t_460f773508f8e5 5,8
+docs/hexclave-migration.md
+  s_457c9e73363fd7::t_c68a558f02869a 1-38
+hexclave.config.ts
+  s_457c9e73363fd7::t_f78efb0c11cdff 1-17
+hexclave.deploy.ts
+  s_457c9e73363fd7::t_ef6d25b9f6f58d 1-19
+package-lock.json
+  s_457c9e73363fd7::t_7e4b06663d1d37 13,47-48,50,63-350,648-665,675-683,696-908,1048-1108,2180-2280,2911-2924,2955-2989,3074-3126,3154-3163,3176-3206,3240-3249,3285-3346,3363-3376,3383-3400,3447-3456,3475-3481,3488-3510,3540-3552,3591-3611,3635-3644,3719-3741,3756-3785,3804-3820,4134-4146,4174-4194,4284-4293,4420-4468,4558-4592,4614-4631,4645-4661,4702-4723,4760-4766,4798-4832,4859-4865,4870-4871,4891-4903,5477-5498,5514-5520,5527-5576
+package.json
+  s_457c9e73363fd7::t_6d8d0705e2b085 19,27-28,31,35,38-39
+packages/spotify/src/hexclave.ts
+  s_457c9e73363fd7::t_6dcd55ffe4b1aa 1-61
+packages/spotify/src/spotify.test.ts
+  s_457c9e73363fd7::t_da8b8a455ef550 371-514
+packages/spotify/src/spotify.ts
+  s_457c9e73363fd7::t_6631b8041b44f5 1-7,9,51-54,169-183,211,235,247-259,263-267,269-282,290-293,295,297-299,331-335,344-345,364
+tsconfig.hexclave.json
+  s_457c9e73363fd7::t_56cb578e5d46c9 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "15551f3dba4172fb9b0df6f5006b6d30cd79a8a7",
+  "prompts": {},
+  "sessions": {
+    "s_457c9e73363fd7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083da-ea6e-70a2-a55c-5a11ead10ffa",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
