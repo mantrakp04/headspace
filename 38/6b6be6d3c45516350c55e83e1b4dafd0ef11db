@@ -1,0 +1,43 @@
+apps/desktop/release-notes/1.0.1.md
+  s_457c9e73363fd7::t_76d4e888fae1b8 1-5
+apps/desktop/release.json
+  s_457c9e73363fd7::t_d34d34028e3108 2-3
+apps/desktop/speaker-check.html
+  s_457c9e73363fd7::t_3c7d1df69a68b8 1-3
+apps/desktop/src/analyser-frame.test.ts
+  s_457c9e73363fd7::t_8334f6f7e6d423 1-33
+apps/desktop/src/analyser-frame.ts
+  s_457c9e73363fd7::t_4a2bd97e129e2c 1-41
+apps/desktop/src/audio.ts
+  s_457c9e73363fd7::t_cb9b876b1050d9 2,7,9,17-21,24
+apps/desktop/src/headspace.tsx
+  s_457c9e73363fd7::t_eb3ea236b04dce 49,222,233,270-273,290,297-299,348,354,418,459,492-494,498-503,649-652,719-722,949,965-967,987-994,1291-1322,1606-1614
+apps/desktop/src/preview.tsx
+  s_457c9e73363fd7::t_c0122874ed18cb 1-69
+apps/desktop/src/skin.css
+  s_457c9e73363fd7::t_499f27647320fd 88,291-382
+apps/desktop/src/speaker-check.tsx
+  s_457c9e73363fd7::t_883adcdfa34b46 1-113
+apps/desktop/src/speaker-motion.test.ts
+  s_457c9e73363fd7::t_1e40e5b3eb3fb9 1-67
+apps/desktop/src/speaker-motion.ts
+  s_457c9e73363fd7::t_0c9fb7345e3117 1-43
+apps/desktop/src/speakers.tsx
+  s_457c9e73363fd7::t_04e86039e637ea 3-7,42,48,51-54,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "386b6be6d3c45516350c55e83e1b4dafd0ef11db",
+  "prompts": {},
+  "sessions": {
+    "s_457c9e73363fd7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083da-ea6e-70a2-a55c-5a11ead10ffa",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
