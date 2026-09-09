@@ -4,8 +4,8 @@ Headspace ships as a Developer ID signed, Apple-notarized DMG on GitHub Releases
 
 ## Publish a release
 
-1. Update `version` and increment `build` in `desktop/release.json`. Both must increase after each public release.
-2. Add `desktop/release-notes/<version>.md` and commit the source.
+1. Update `version` and increment `build` in `apps/desktop/release.json`. Both must increase after each public release.
+2. Add `apps/desktop/release-notes/<version>.md` and commit the source.
 3. On the signing Mac, run `npm run release`.
 
 The command checks the source, builds the app, signs Sparkle's helpers and the app, notarizes and staples both app and DMG, signs the update feed, verifies every artifact, and uploads all assets to a draft before publishing it. Failures stop publication. A release requires a clean checkout and the same source commit throughout preparation and publishing. Existing versions cannot be overwritten.
@@ -35,8 +35,10 @@ Local builds from before Sparkle was added need one manual installation of the f
 - `npm run desktop:build` builds and signs with Developer ID; it does not publish or notarize by itself.
 - `npm run desktop:build -- --development` creates an explicit ad-hoc build for contributors and CI, with automatic update defaults disabled.
 - `npm run test:release` checks appcast rejection for wrong URLs, versions, lengths, or signature shapes. The release command separately verifies real cryptographic signatures with Sparkle.
-- `python3 desktop/scripts/verify-download.py /path/to/downloads` checks the downloaded DMG's checksum, signing team, notarization tickets, mounted app, and installation shortcut.
+- `python3 apps/desktop/scripts/verify-download.py /path/to/downloads` checks the downloaded DMG's checksum, signing team, notarization tickets, mounted app, and installation shortcut.
 
 GitHub Actions verifies source on pushes and pull requests, and independently verifies the published DMG on a fresh macOS runner after each release. Release signing and publishing run on the signing Mac with `npm run release`.
 
 References: [Sparkle setup](https://sparkle-project.org/documentation/) and [Apple Developer ID](https://developer.apple.com/developer-id/).
+
+The monorepo keeps the release implementation under `apps/desktop/scripts`. `npm run dev` uses a separate HMR development bundle; public releases always compile and embed the player from `apps/desktop/dist`. The landing page deploys independently to Vercel and is not bundled into the DMG.

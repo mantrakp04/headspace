@@ -1,0 +1,16 @@
+{
+  "name": "@headspace/spotify",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/spotify.ts",
+    "./player": "./src/spotify-player.ts",
+    "./selection": "./src/playback-selection.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-transform-types --test src/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src"
+  }
+}

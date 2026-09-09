@@ -20,14 +20,43 @@ The personal developer app is configured for PKCE OAuth using `http://127.0.0.1:
 
 Access and refresh tokens persist in the Mac Keychain. Spotify developer-app access restrictions still apply to other accounts; distributing the DMG does not grant them access. The browser opens Spotify authorization and returns to a server bound only to `127.0.0.1`. OAuth state and the code verifier are checked before token exchange. Do not add tokens, client secrets, or Spotify account files to this repository.
 
-Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders control the decorative visualizer; they do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
+Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders adjust the spectrum display gain. They do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
+
+## Development
+
+This is an npm-workspaces Turborepo. Use Node 24 and run from the repository root:
+
+```sh
+npm ci
+npm run dev
+```
+
+`npm run dev` launches **Headspace Dev** and both Vite servers:
+
+- Player in the native window and browser: `http://127.0.0.1:4383/`
+- Landing page: `http://127.0.0.1:4390/`
+- Native Spotify callback: `http://127.0.0.1:4382/callback`
+
+Quit the normal Headspace app first because it also owns the Spotify callback port. The launcher detects a conflict and exits without killing another process. React and CSS edits update through Vite HMR in both the native window and browser. Saving Swift source rebuilds and restarts the development window. Ctrl-C stops the processes owned by the launcher.
+
+Use `npm run dev:web` for both browser interfaces without launching a native window, `npm run dev:desktop` for native/player development only, or `npm run dev:site` for the landing page only.
+
+The development app has its own bundle identifier, disabled update menus, and Web Inspector support. Release builds embed the compiled player and accept native bridge calls only from the bundled localhost origin. Development bundles and Sparkle dependencies live under `~/Library/Caches/Headspace/`.
+
+The browser player uses the same components, with native window controls disabled. Mac audio capture and Keychain storage require the native app. Browser Spotify sign-in uses a separate session and requires `http://127.0.0.1:4383/` in the Spotify developer app's allowed redirect URIs. Browser tokens stay in session storage. No native credentials are served over HTTP.
+
+## Landing page deployment
+
+Vercel project **headspace** belongs to **mantrakp2004s-projects** and is connected to this GitHub repository. Its root directory is `apps/site`, with TanStack Start framework detection and Nitro's Vercel adapter. Pushes to `main` deploy production; pull requests receive preview deployments. The root lockfile installs all workspace dependencies. Vercel builds only the landing app, with no Xcode or Apple signing credentials required.
+
+To link a new local checkout, run `vercel link --repo --scope mantrakp2004s-projects`. The `.vercel` directory is local metadata and is not committed. Public Mac downloads remain on GitHub Releases.
 
 ## Build
 
 Requires Apple Silicon macOS 14+, Xcode command-line tools, and Node 24+.
 
 ```sh
-npm install
+npm ci
 npm run desktop:build
 ```
 
@@ -55,20 +84,28 @@ npm run lint
 npm run desktop:build
 ```
 
-The 23 tests cover OAuth/session handling, API errors, catalog parsing, playback context, paginated song lists, duplicate tracks, queue targeting, transport, repeat/shuffle state, and SDK change notifications. Spotify HTTP and SDK responses are mocked. See [Spotify queue behavior and implementation](docs/spotify-queues.md) for the analysis, API limits, and verification notes.
+The tests cover OAuth/session handling, API errors, catalog parsing, playback context, paginated song lists, duplicate tracks, queue targeting, transport, repeat/shuffle state, and SDK change notifications. Spotify HTTP and SDK responses are mocked. See [Spotify queue behavior and implementation](docs/spotify-queues.md) for the analysis, API limits, and verification notes.
 
-For a repeatable 10,000-row UI check, run `npm run desktop:dev -- --port 4383` and open `http://127.0.0.1:4383/list-benchmark.html`. At 280px height it mounts 15 rows, including overscan. End jumps to Track 10000; selecting it shows its name. Switching the dataset resets the grid to 20 rows. This fixture is excluded from the packaged production entry point.
+For a repeatable 10,000-row UI check, run `npm run dev:web` and open `http://127.0.0.1:4383/list-benchmark.html`. At 280px height it mounts 15 rows, including overscan. End jumps to Track 10000; selecting it shows its name. Switching the dataset resets the grid to 20 rows. This fixture is excluded from the packaged production entry point.
 
 ## Artwork
 
-Original Headspace skin © 2000 Microsoft Corporation; skin design credited to CF / Carolyn Farino. Original bitmaps were decoded from the archived [Headspace.wmz](https://w2krepo.somnolescent.net/Windows%20Media%20Player/Skins/Headspace.wmz). The original WMS/JavaScript is not executed. `desktop/scripts/import-skin.py` reproduces the documented bitmap color-key decoding.
+Original Headspace skin © 2000 Microsoft Corporation; skin design credited to CF / Carolyn Farino. Original bitmaps were decoded from the archived [Headspace.wmz](https://w2krepo.somnolescent.net/Windows%20Media%20Player/Skins/Headspace.wmz). The original WMS/JavaScript is not executed. `apps/desktop/scripts/import-skin.py` reproduces the documented bitmap color-key decoding.
 
 The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is preserved in commit `01081d5`.
 
-The landing page is at `/`; the earlier Sunroom web prototype is at `/listen`. The local desktop build uses `desktop/index.html` and does not publish or depend on that hosted site.
+The landing page is its own TanStack Start app in `apps/site`, deployed to Vercel. The desktop player uses TanStack Router and Vite in `apps/desktop`. Its packaged resources do not depend on the hosted landing page. Shared Spotify API, OAuth, and playback-selection code lives in `packages/spotify`.
 
 ### Visualizations
 
-The gold button opens seven choices: classic bars, liquid chrome, aurora, blank screen, hyperspace, light ribbons, and star flight. Speed, glow, color, and freeze controls persist locally. Five effects use `vgpu` and WebGPU; classic bars and the compatibility fallback use Canvas. Effects are generative: Spotify does not expose decoded audio for spectrum analysis. Reduced motion and frozen scenes stop advancing, and hidden views skip rendering.
+The gold button opens ten choices, including Spectral bloom, Oscilloscope, and Spectrogram. Speed, glow, color, and freeze controls persist locally. Five effects use `vgpu` and WebGPU. Spectrum modes and the compatibility fallback use Canvas.
 
-With the desktop dev server on port 4383, `/skin-preview.html` inspects the complete skin at multiple scales/backgrounds and `/gpu-check.html` renders all five GPU effects. `node --experimental-transform-types desktop/src/visualizer-check.ts` verifies shader compilation and changing, nonblack GPU output. Both browser fixtures are excluded from the app build.
+On macOS 14.2 or later, **React to Mac audio** connects a private Core Audio tap to the Mac's output. Allow Headspace's system audio request when macOS prompts. Capture includes other apps playing locally. Playback on a remote Spotify Connect device cannot be analyzed by this Mac. Audio is analyzed in memory and is never saved or uploaded. You can turn capture off in the visualization chooser.
+
+The analyzer supplies 64 logarithmic frequency bins, 128 waveform samples, and separate bass, mid, and treble levels at 40 frames per second. Each channel is analyzed separately before combining power, preserving phase-opposed stereo content. The original speaker cone textures flex inside their fixed rims with measured bass. Silent or interrupted capture settles to rest. Reduced motion and freeze stop animation, and hidden views skip rendering.
+
+If capture is unavailable, the chooser shows the failure and offers a retry. macOS audio access is managed in **System Settings → Privacy & Security → Screen & System Audio Recording**. Versions before macOS 14.2 keep the player usable with static visualizations.
+
+With the desktop dev server on port 4383, `/skin-preview.html` inspects the complete skin at multiple scales/backgrounds and `/gpu-check.html` renders all five GPU effects. `node --experimental-transform-types apps/desktop/src/visualizer-check.ts` verifies that each GPU effect responds independently to bass, mids, and treble, then returns to its silent image. Both browser fixtures are excluded from the app build.
+
+Run the native analyzer checks with `xcrun swiftc -O apps/desktop/native/AudioAnalysis.swift apps/desktop/native/tests/AudioAnalysisTests.swift -framework Accelerate -o /tmp/headspace-audio-analysis-tests && /tmp/headspace-audio-analysis-tests`. They verify frequency separation, silence, stereo phase opposition, and bounded output. Launch the built executable with `--audio-diagnostics` to print local capture counters and signal levels to stderr. This optional check does not log audio samples.

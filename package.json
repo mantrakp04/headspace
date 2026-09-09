@@ -1,58 +1,39 @@
 {
-  "name": "sunroom",
-  "version": "0.1.0",
+  "name": "headspace",
   "private": true,
+  "type": "module",
+  "packageManager": "npm@11.12.1",
   "engines": {
-    "node": ">=22.13.0"
+    "node": "24.x"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev:web",
+    "dev:site": "turbo run dev --filter=@headspace/site",
+    "dev:desktop": "turbo run dev --filter=@headspace/desktop",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
     "format": "oxfmt",
-    "test": "node --experimental-transform-types --test lib/*.test.ts desktop/src/*.test.ts",
-    "typecheck": "tsc --noEmit",
-    "desktop:build": "bash desktop/scripts/build.sh",
-    "desktop:dev": "vite --config desktop/vite.config.ts",
-    "test:release": "python3 -m unittest discover -s desktop/scripts -p \"test_*.py\"",
-    "release": "python3 desktop/scripts/release.py release",
-    "release:prepare": "python3 desktop/scripts/release.py prepare",
-    "release:publish": "python3 desktop/scripts/release.py publish"
-  },
-  "dependencies": {
-    "@base-ui/react": "1.7.0",
-    "@tanstack/react-table": "^9.2.4",
-    "@tanstack/react-virtual": "^3.14.10",
-    "class-variance-authority": "0.7.1",
-    "clsx": "2.1.1",
-    "lucide-react": "1.31.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "react-server-dom-webpack": "19.2.6",
-    "shadcn": "4.18.0",
-    "tailwind-merge": "3.6.0",
-    "tw-animate-css": "1.4.0",
-    "vgpu": "^0.4.0",
-    "vinext": "1.0.0-beta.5"
+    "desktop:build": "npm run native:build --workspace=@headspace/desktop --",
+    "test:release": "npm run test:release --workspace=@headspace/desktop",
+    "release": "python3 apps/desktop/scripts/release.py release",
+    "release:prepare": "python3 apps/desktop/scripts/release.py prepare",
+    "release:publish": "python3 apps/desktop/scripts/release.py publish"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@cloudflare/workers-types": "4.20260515.1",
-    "@openai/sites-vite-plugin": "0.2.0",
-    "@tailwindcss/postcss": "4.2.1",
+    "turbo": "2.10.12",
+    "typescript": "5.9.3",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
-    "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
-    "tailwindcss": "4.2.1",
-    "typescript": "5.9.3",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
-  },
-  "type": "module"
+    "oxfmt": "0.61.0"
+  }
 }
