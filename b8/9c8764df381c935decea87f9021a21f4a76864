@@ -1,0 +1,27 @@
+apps/desktop/release.json
+  s_20a20c9941fd70::t_58246ad3964488 2-3
+apps/desktop/release-notes/1.0.1.md
+  s_20a20c9941fd70::t_58246ad3964488 1-5
+apps/desktop/release-notes/1.0.2.md
+  s_20a20c9941fd70::t_58246ad3964488 1-5
+apps/desktop/release-notes/1.0.3.md
+  s_20a20c9941fd70::t_c5b21cb73884b4 1-6
+docs/hexclave-migration.md
+  s_20a20c9941fd70::t_3f4c777524ad47 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "b89c8764df381c935decea87f9021a21f4a76864",
+  "prompts": {},
+  "sessions": {
+    "s_20a20c9941fd70": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083bf-f9e5-7ca3-a4e6-5100d282602e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
