@@ -1,0 +1,60 @@
+.gitignore
+  s_d48a3a21aacdcb::t_dd56aeb80f0e71 45-50
+.github/workflows/ci.yml
+  s_d48a3a21aacdcb::t_9b330770c989d9 1-24
+app/layout.tsx
+  s_d48a3a21aacdcb::t_dd56aeb80f0e71 6,8
+app/landing.css
+  s_d48a3a21aacdcb::t_221478d23556f6 1-444
+app/listen/page.tsx
+  s_d48a3a21aacdcb::t_dd56aeb80f0e71 1-5
+desktop/release-notes/1.0.0.md
+  s_d48a3a21aacdcb::t_9b330770c989d9 1-14
+desktop/scripts/build.sh
+  s_d48a3a21aacdcb::t_37d3e7fb329548 4
+desktop/native/Headspace.swift
+  s_d48a3a21aacdcb::t_37d3e7fb329548 65,137-145
+  s_d48a3a21aacdcb::t_a68b60218d6a17 5,71,74,115-118,132-136,146
+app/page.tsx
+  s_d48a3a21aacdcb::t_fe398d0a08e0d9 63
+  s_d48a3a21aacdcb::t_dd56aeb80f0e71 1,12-15,30-32,45-47,72-73,77,91,96-97,111,139,153,168-169
+  s_d48a3a21aacdcb::t_a5546e7be30c27 3,16-29
+  s_d48a3a21aacdcb::t_699258b0632251 2,7,42,155,157
+  s_d48a3a21aacdcb::t_221478d23556f6 4-6,8-11,34,36-41,43-44,48-62,64-71,74-76,78-90,92-95,98-110,112-138,140-151,154,156,158-167
+  s_d48a3a21aacdcb::t_db7f394861d4a4 33
+  s_d48a3a21aacdcb::t_1c7f94e3c94c7a 35
+  s_d48a3a21aacdcb::t_6acc44f3bb64f1 152
+desktop/release.json
+  s_d48a3a21aacdcb::t_a68b60218d6a17 1-13
+package.json
+  s_d48a3a21aacdcb::t_9b330770c989d9 17-21
+desktop/scripts/verify-download.py
+  s_d48a3a21aacdcb::t_9b330770c989d9 1-46
+.github/workflows/verify-release.yml
+  s_d48a3a21aacdcb::t_9b330770c989d9 1-24
+desktop/scripts/release.py
+  s_d48a3a21aacdcb::t_37d3e7fb329548 1-280
+  s_d48a3a21aacdcb::t_5b6ba89e2023f4 281-292
+README.md
+  s_d48a3a21aacdcb::t_8faf4582ffb1a1 21,34,45,68
+desktop/scripts/test_release.py
+  s_d48a3a21aacdcb::t_e6161914b74963 1-57
+docs/releases.md
+  s_d48a3a21aacdcb::t_0b9e44fbdd20ba 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "1a8b19297acd9e1ca38fcd19d39a89a7430b7d3d",
+  "prompts": {},
+  "sessions": {
+    "s_d48a3a21aacdcb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0836c-6134-7050-9eab-65198a1ba71d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
