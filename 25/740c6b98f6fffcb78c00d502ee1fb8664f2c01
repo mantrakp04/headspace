@@ -1,0 +1,274 @@
+apps/site/turbo.json
+  s_abdb8dba1cf0d5::t_7192027312f566 1-13
+apps/site/tsconfig.json
+  s_abdb8dba1cf0d5::t_97baea4e3dbd54 4
+apps/site/player/index.html
+  s_abdb8dba1cf0d5::t_19186ee3069390 1-5,7-13
+  s_efb6c751fca2bc::t_b699933c888c17 6
+apps/site/player/preview-player.test.ts
+  s_b3b39af2de6f42::t_c0db577998ada0 3,10,22-25,87,90,99-100,138,140-143
+  s_b3b39af2de6f42::t_b3272f005ca35a 83-85
+  s_b3b39af2de6f42::t_608016bb86428e 1-2,4-9,15-20,34,38-43,47,54-57,61-63,79-82,92-98,101-130,135-137,139,144-152
+  s_b3b39af2de6f42::t_8304039b904e13 11-14,21,26-33,35-37,44-46,48-53,58-60,64-78,86,88-89,91,131-134
+tsconfig.hexclave.json
+  s_20a20c9941fd70::t_c46824fc188d27 1-4
+apps/site/src/components/theme-picker.tsx
+  s_6578d020c43d71::t_ffa4c9dd2ea10c 1-10,12-17,19-23,25-26
+  s_457c9e73363fd7::t_48241bd1f3e413 18
+  s_457c9e73363fd7::t_cb893f76c80e92 11,24
+apps/desktop/src/bridge.ts
+  s_20a20c9941fd70::t_2fd5870a8739b4 82
+  s_20a20c9941fd70::t_6909ee5d0a507f 7,11,18,70-72
+  s_20a20c9941fd70::t_cc4166c4333e14 12-17
+apps/desktop/package.json
+  s_20a20c9941fd70::t_4f66a069f8ae04 18
+apps/desktop/vite.config.ts
+  s_20a20c9941fd70::t_6909ee5d0a507f 6
+packages/spotify/src/spotify.ts
+  s_20a20c9941fd70::t_4665e125db7e1e 7,51-54,178-183,211,235,247-255,269-272,291-293,295,330-331,343-344,365
+  s_20a20c9941fd70::t_792752fdcc4502 347-349
+  s_20a20c9941fd70::t_2fd5870a8739b4 306,308,312-313
+  s_20a20c9941fd70::t_1d3bac490fd028 9,290
+  s_20a20c9941fd70::t_cc4166c4333e14 1-6,169-177,256-259,263-267,273-282,297-299,332-334
+apps/site/src/styles.css
+  s_457c9e73363fd7::t_cb893f76c80e92 431-434,495
+  s_457c9e73363fd7::t_48241bd1f3e413 453
+  s_6578d020c43d71::t_a989c5ae3caf34 19-20
+  s_6578d020c43d71::t_4454c72e004dab 749-752
+  s_6578d020c43d71::t_ead7dfffc0ed0b 2-5,17,21-36,43-105,112,115-359,367-369,375,415,417-422,430,437,439-447,449-451,454-455,457-458,460-461,463-464,466-467,469-470,474,496-498,502-507,531,543,545,601,618-619,627-632,644,646,661,665,674
+  s_6578d020c43d71::t_18ba46ead41b3b 472
+  s_6578d020c43d71::t_c4be8ec7b6dcc6 533,535-537,541-542,546-547,549-570,573-576,578-580,582-587,589-595
+  s_6578d020c43d71::t_6addad0b09e8bb 481,486-488,490-492
+  s_abdb8dba1cf0d5::t_efd78404cba85a 10,13-16,18,42,106-111,113-114,360-366,377-405,411-412,425-428,473,475,478-480,499-501,509,511-512,515-519,522,524-530,539,597-600,602-603,605-606,608-610,613-614,616-617,620,622,625-626,633,635-642,645,647,654,657-659,663-664,667,670,673,675,681-683,687-688,691-692,695-696,698-700,702-703,705-706,708-709,711,714-717,719-720,722-723,725-727,730-731,733-734,736-737,739-740,744-747
+  s_abdb8dba1cf0d5::t_f538ca4dcc5d2a 6,376,416,477,514,548,571,612,653,666,671,693,728,748
+  s_6578d020c43d71::t_e96bb8101d1a83 678
+  s_457c9e73363fd7::t_d9440fb09938bd 494,643,651
+apps/site/public/robots.txt
+  s_efb6c751fca2bc::t_b699933c888c17 1-4
+README.md
+  s_20a20c9941fd70::t_9dc8eda8896012 19,21-23,48
+  s_20a20c9941fd70::t_3eda44d88feeef 52-56,58,103
+  s_20a20c9941fd70::t_57fb5c12fe826a 118-121
+apps/site/src/landing-themes.ts
+  s_6578d020c43d71::t_5fcdcd084a368c 1-32
+apps/desktop/src/audio.ts
+  s_b3b39af2de6f42::t_7412b0281e6f35 2,7
+  s_b3b39af2de6f42::t_430162810633e1 9,17-21,24
+apps/site/public/sitemap.xml
+  s_efb6c751fca2bc::t_b699933c888c17 1-4
+hexclave.config.ts
+  s_20a20c9941fd70::t_2fd5870a8739b4 4-9
+  s_20a20c9941fd70::t_cc4166c4333e14 1,12-20
+  s_20a20c9941fd70::t_4837008575d901 3,22
+  s_20a20c9941fd70::t_6909ee5d0a507f 10-11,21
+  s_20a20c9941fd70::t_0b7c05a7a20bf6 2
+apps/site/vite.config.ts
+  s_abdb8dba1cf0d5::t_97baea4e3dbd54 5,8
+apps/desktop/src/skin.css
+  s_b3b39af2de6f42::t_f785c675c3fb54 291,295-297,299-382
+  s_b3b39af2de6f42::t_b1a59113908faf 298
+  s_b3b39af2de6f42::t_537af942033b96 88,292-294
+apps/desktop/src/speaker-motion.ts
+  s_a42039ca1a6bf9::t_6d883219e5d819 7,16-17
+  s_a42039ca1a6bf9::t_e45c72cfdd8531 1-6,8-15,18-43
+apps/site/src/components/player-preview.tsx
+  s_6578d020c43d71::t_6cc96d9485a258 29-33
+  s_b3b39af2de6f42::t_06143b0697ad59 38
+  s_abdb8dba1cf0d5::t_19186ee3069390 28
+  s_abdb8dba1cf0d5::t_d18d1dce80dabf 5,10,36
+  s_abdb8dba1cf0d5::t_efd78404cba85a 1-4,11-20,25-26,34-35,37,39-41
+  s_abdb8dba1cf0d5::t_69472c4cd63b8c 6-9,21-24
+  s_abdb8dba1cf0d5::t_f538ca4dcc5d2a 27,42-44
+hexclave.deploy.ts
+  s_20a20c9941fd70::t_4837008575d901 1-13,15-19
+  s_20a20c9941fd70::t_e9588b83ef3ced 14
+apps/desktop/src/speaker-motion.test.ts
+  s_a42039ca1a6bf9::t_66a48fdcdb6edb 1-2,8-26,35-67
+  s_a42039ca1a6bf9::t_6d883219e5d819 3-7,27-34
+.dockerignore
+  s_20a20c9941fd70::t_4837008575d901 1-17
+apps/desktop/speaker-check.html
+  s_a42039ca1a6bf9::t_94920634746d7c 1-3
+apps/desktop/src/analyser-frame.test.ts
+  s_b3b39af2de6f42::t_537af942033b96 7-10,16-19
+  s_b3b39af2de6f42::t_f785c675c3fb54 1-6,11-15,20-33
+packages/spotify/src/spotify.test.ts
+  s_20a20c9941fd70::t_7e2a3555d79f10 406-407,410,435,472,505
+  s_20a20c9941fd70::t_cc4166c4333e14 371-405,408-409,411-434,436-471,473-504,506-514
+apps/site/scripts/social-card.html
+  s_efb6c751fca2bc::t_268ba0e1f4f7b1 1-22
+apps/desktop/src/analytics.ts
+  s_20a20c9941fd70::t_8b9bd7c8febb91 15-18
+  s_20a20c9941fd70::t_2fd5870a8739b4 1-14
+apps/desktop/src/analyser-frame.ts
+  s_b3b39af2de6f42::t_537af942033b96 24-27,30-33
+  s_b3b39af2de6f42::t_430162810633e1 1-23,28-29,34-41
+docs/hexclave-migration.md
+  s_20a20c9941fd70::t_b994e5eb74733d 53
+  s_20a20c9941fd70::t_9dc8eda8896012 28,30-33,46-51
+  s_20a20c9941fd70::t_25a33f6ff93964 1-6,9,11-12,15-27,29,40-44,54-55
+  s_20a20c9941fd70::t_57fb5c12fe826a 10,34-35,37-39,45,52
+  s_20a20c9941fd70::t_92124e723d5dbc 7,14
+  s_20a20c9941fd70::t_c961b6a4c45a7a 36
+  s_20a20c9941fd70::t_6d1e058314388f 8,13
+apps/site/src/seo.ts
+  s_efb6c751fca2bc::t_b699933c888c17 1-7
+.gitignore
+  s_abdb8dba1cf0d5::t_97baea4e3dbd54 19-20
+apps/desktop/src/preview.tsx
+  s_b3b39af2de6f42::t_8304039b904e13 43-45
+  s_b3b39af2de6f42::t_b1a59113908faf 24,59,66
+  s_b3b39af2de6f42::t_537af942033b96 54-56
+  s_b3b39af2de6f42::t_441a898319008b 60-65
+  s_b3b39af2de6f42::t_430162810633e1 1-23,25-42,46-53,57-58,67-69
+apps/desktop/src/bridge.test.ts
+  s_20a20c9941fd70::t_73f086ddefc190 5,93-111,113-114,116
+  s_20a20c9941fd70::t_792752fdcc4502 117-155
+  s_20a20c9941fd70::t_65f2f9fc2d2383 112
+  s_20a20c9941fd70::t_d54fac7153aaf7 115
+apps/site/src/routes/__root.tsx
+  s_20a20c9941fd70::t_2fd5870a8739b4 8,31-35
+apps/desktop/src/speaker-check.tsx
+  s_a42039ca1a6bf9::t_2254f74e0e0c51 7-10,20-30,34-110
+  s_a42039ca1a6bf9::t_94920634746d7c 1-6,11-19,31-33,111-113
+.env.example
+  s_20a20c9941fd70::t_73f086ddefc190 1-8
+.github/workflows/deploy-site.yml
+  s_20a20c9941fd70::t_f24fa0b91854f4 1-29
+apps/site/player/preview-tracks.ts
+  s_b3b39af2de6f42::t_430162810633e1 1-9,15-20,26-31,37
+  s_b3b39af2de6f42::t_537af942033b96 11-14,22-25,33-36,38-46
+  s_b3b39af2de6f42::t_7412b0281e6f35 10,21,32
+apps/site/package.json
+  s_6578d020c43d71::t_4b507df56a3bba 15-16,18
+  s_20a20c9941fd70::t_4f66a069f8ae04 19
+  s_b3b39af2de6f42::t_06143b0697ad59 10-11
+apps/site/vercel.json
+  s_20a20c9941fd70::t_11308b6eb6e1fd 1-4
+apps/desktop/native/Headspace.swift
+  s_20a20c9941fd70::t_d39dafda511159 66
+  s_20a20c9941fd70::t_0e457300391fa8 187
+apps/site/player/main.tsx
+  s_b3b39af2de6f42::t_630ca322f56f4c 1,4,7-8,50
+  s_abdb8dba1cf0d5::t_19186ee3069390 2-3,5,53-54
+  s_abdb8dba1cf0d5::t_d18d1dce80dabf 11,17,25-26,38-41,47
+  s_abdb8dba1cf0d5::t_69472c4cd63b8c 12-16,18-24
+  s_abdb8dba1cf0d5::t_efd78404cba85a 6,9-10,27-37,42-46,48-49,51-52,55
+apps/site/src/routes/index.tsx
+  s_efb6c751fca2bc::t_b699933c888c17 14-38,63-65,150
+  s_6578d020c43d71::t_f25af3ba2774eb 69-82
+  s_efb6c751fca2bc::t_e76eddeb45e78f 6-12,39-62
+  s_abdb8dba1cf0d5::t_efd78404cba85a 112,124-125,127-135,137-146,148,152-155,158-162,174-178,181
+  s_6578d020c43d71::t_f97312f910dc8f 114-116,118
+  s_abdb8dba1cf0d5::t_5d0c53db6ee2fb 121,136
+  s_b3b39af2de6f42::t_537af942033b96 149
+  s_6578d020c43d71::t_7f8b12477474bf 109
+  s_abdb8dba1cf0d5::t_f538ca4dcc5d2a 4,180
+  s_6578d020c43d71::t_8e26f50d292de6 1-2,67,83-108,119,126,163-170,172-173
+  s_6578d020c43d71::t_29db128df16115 117
+  s_6578d020c43d71::t_9ca0243a1cf1a1 156
+  s_20a20c9941fd70::t_77349ea98f586c 68
+apps/desktop/src/speakers.tsx
+  s_a42039ca1a6bf9::t_e45c72cfdd8531 48,53-54
+  s_a42039ca1a6bf9::t_4ed618a97e198d 42
+  s_a42039ca1a6bf9::t_6d883219e5d819 3-7,52,59
+  s_a42039ca1a6bf9::t_e4af8c07d90296 51
+package.json
+  s_20a20c9941fd70::t_c46824fc188d27 19,27-28
+  s_20a20c9941fd70::t_974abf78c0248b 31,35,38-39
+apps/site/player-build.ts
+  s_abdb8dba1cf0d5::t_5feed5089d8113 11,42-44
+  s_abdb8dba1cf0d5::t_19186ee3069390 1-10,12,37-41,45-49,56-57,63-69
+  s_abdb8dba1cf0d5::t_efd78404cba85a 13-22,29-33,35-36,50-55,58-62
+  s_abdb8dba1cf0d5::t_69472c4cd63b8c 23-28,34
+apps/desktop/src/headspace.tsx
+  s_b3b39af2de6f42::t_537af942033b96 297-299,968-970,991-996,1295-1325,1610-1615
+  s_abdb8dba1cf0d5::t_efd78404cba85a 271-273,502-504
+  s_20a20c9941fd70::t_2fd5870a8739b4 421-423
+  s_b3b39af2de6f42::t_630ca322f56f4c 49,222,233,348,354,496,652-655,722-725,952,990,997,1294,1609,1617
+  s_b3b39af2de6f42::t_06143b0697ad59 270
+  s_abdb8dba1cf0d5::t_97baea4e3dbd54 290,418,462,495,497,501,505-506
+  s_b3b39af2de6f42::t_306ad113307fb4 1616
+apps/site/Dockerfile
+  s_20a20c9941fd70::t_4837008575d901 1-18
+apps/site/player/preview-player.ts
+  s_b3b39af2de6f42::t_b3272f005ca35a 85-88,202-207,217-227
+  s_b3b39af2de6f42::t_06143b0697ad59 193-201,208-216,235
+  s_b3b39af2de6f42::t_537af942033b96 8-10,32-39,47-49,69-72,89-91,107-108,114,116-117,127-129,146-147,162-168,175-179,182-188,229-231
+  s_b3b39af2de6f42::t_7412b0281e6f35 3-6
+  s_b3b39af2de6f42::t_608016bb86428e 12-19,249,251
+  s_b3b39af2de6f42::t_b56eb41a9e5a63 30,58,82,111,115,119,234
+  s_b3b39af2de6f42::t_630ca322f56f4c 1-2,7,11,20-29,31,40-46,50-57,59-68,73-81,83-84,92-106,109-110,112-113,118,120-126,130-145,148-161,169-174,180-181,189-192,228,232-233,236-248,250,252-256
+packages/spotify/src/hexclave.ts
+  s_20a20c9941fd70::t_4665e125db7e1e 1-7,11,16-17,26-32,45,47-48,54-55,59-61
+  s_20a20c9941fd70::t_cc4166c4333e14 8-10,12-15,18-25,33-44,46,49-53,56-58
+apps/site/src/analytics.ts
+  s_20a20c9941fd70::t_8b9bd7c8febb91 11-14
+  s_20a20c9941fd70::t_2fd5870a8739b4 1-10
+package-lock.json
+  s_20a20c9941fd70::t_4844cdd4733c16 13,32,48-49,51-52,65-336,634-651,661-669,682-889,1029-1083,2155-2247,2878-2889,2904,2914,2920-2952,3037-3084,3112-3120,3133-3159,3193-3201,3237-3293,3310-3322,3329-3345,3365,3392-3400,3419-3424,3431-3451,3481-3492,3531-3549,3573-3581,3656-3676,3691-3717,3736-3750,4064-4075,4103-4120,4210-4218,4345-4389,4479-4510,4532-4548,4562-4576,4617-4636,4673-4678,4710-4741,4768-4773,4778,4798-4809,5383-5402,5418-5423,5430-5476
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "25740c6b98f6fffcb78c00d502ee1fb8664f2c01",
+  "prompts": {},
+  "sessions": {
+    "s_20a20c9941fd70": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083bf-f9e5-7ca3-a4e6-5100d282602e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_457c9e73363fd7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083da-ea6e-70a2-a55c-5a11ead10ffa",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_6578d020c43d71": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b3632de7-5e76-4638-b31b-830364f1ca38",
+        "model": "grok-4.6"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_a42039ca1a6bf9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a08386-94d2-7f62-89ac-c0344756257a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_abdb8dba1cf0d5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083aa-3de5-71a0-9b96-d784be27cf4e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_b3b39af2de6f42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083c3-184f-7f23-82a1-68ef8c962747",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_efb6c751fca2bc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a083e7-a9c7-72f1-b788-ef448520c685",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
