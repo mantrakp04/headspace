@@ -13,7 +13,7 @@
 
 A live rollout with `minInstances: 0` failed readiness because the stopped instance was updated but left stopped. Runtime logs confirmed the application started normally once awakened. `minInstances: 1` keeps one instance running so future deployments can verify readiness reliably. The subsequent deployment completed successfully.
 
-The GitHub Actions workflow and `apps/site/vercel.json` are local changes until committed and pushed. Together they move Git deployments from Vercel to Hexclave. The GitHub repository secret `HEXCLAVE_SECRET_SERVER_KEY` is already configured. Its key expires September 9, 2027; replace the GitHub secret before then. No secret value is written to this repository.
+The GitHub Actions workflow and `apps/site/vercel.json` move Git deployments from Vercel to Hexclave on pushes to `main`. The GitHub repository secret `HEXCLAVE_SECRET_SERVER_KEY` is already configured. Its key expires September 9, 2027; replace the GitHub secret before then. No secret value is written to this repository.
 
 The old Vercel project is `prj_Hf2rNLCwI0Z24A12zACwBla1qigq`, with production alias `headspace-theta.vercel.app`. Its existing deployment remains available. GitHub Releases continues hosting the notarized DMG and signed Sparkle feed; the native app does not load its interface from the landing-page host.
 
