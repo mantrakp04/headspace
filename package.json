@@ -14,7 +14,11 @@
     "test": "node --experimental-transform-types --test lib/*.test.ts desktop/src/*.test.ts",
     "typecheck": "tsc --noEmit",
     "desktop:build": "bash desktop/scripts/build.sh",
-    "desktop:dev": "vite --config desktop/vite.config.ts"
+    "desktop:dev": "vite --config desktop/vite.config.ts",
+    "test:release": "python3 -m unittest discover -s desktop/scripts -p \"test_*.py\"",
+    "release": "python3 desktop/scripts/release.py release",
+    "release:prepare": "python3 desktop/scripts/release.py prepare",
+    "release:publish": "python3 desktop/scripts/release.py publish"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

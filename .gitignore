@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Native desktop bundle
 /desktop/build/
+/desktop/vendor/
+/desktop/releases/
+*.p12
+*.p8
+*.key
+__pycache__/

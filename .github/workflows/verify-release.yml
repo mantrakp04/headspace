@@ -1,0 +1,24 @@
+name: Verify published DMG
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to verify
+        required: true
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Download published files
+        run: gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern Headspace.dmg --pattern SHA256SUMS --dir "$RUNNER_TEMP/headspace-release"
+      - name: Verify checksum, Apple signature, notarization, and installation contents
+        run: python3 desktop/scripts/verify-download.py "$RUNNER_TEMP/headspace-release"

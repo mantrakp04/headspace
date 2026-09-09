@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "build": 1,
+  "bundle_id": "local.headspace.player",
+  "minimum_macos": "14.0",
+  "repository": "mantrakp04/headspace",
+  "signing_identity": "Developer ID Application: mantra patel (U5L5T3NGVV)",
+  "team_id": "U5L5T3NGVV",
+  "sparkle_version": "2.9.6",
+  "sparkle_sha256": "52bf9e88cdd972fc0c81501377a880e90d47031bd8ca5462488f843e2609e192",
+  "sparkle_key_account": "headspace",
+  "sparkle_public_key": "Mlca3J3xF9idBUynOtT/y0uYs912rNxhKZz9rwqe3o4="
+}

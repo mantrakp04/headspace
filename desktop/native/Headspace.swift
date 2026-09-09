@@ -2,6 +2,7 @@ import Cocoa
 import WebKit
 import Network
 import Security
+import Sparkle
 
 let localOrigin = "http://127.0.0.1:4382"
 
@@ -61,14 +62,16 @@ final class LocalServer {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate, NSMenuItemValidation {
     var window: SkinWindow!
     var webView: WKWebView!
     var server: LocalServer!
     var pendingAuth: URL?
     let keychainService = "local.headspace.spotify"
+    private var updaterController: SPUStandardUpdaterController!
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         makeMenu()
         let config = WKWebViewConfiguration()
         config.applicationNameForUserAgent = "Version/26.0 Safari/605.1.15"
@@ -109,6 +112,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let appItem = NSMenuItem(); menu.addItem(appItem)
         let appMenu = NSMenu(); appItem.submenu = appMenu
         appMenu.addItem(withTitle: "About Headspace", action: #selector(about), keyEquivalent: "")
+        let checkForUpdates = appMenu.addItem(withTitle: "Check for Updates…", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+        checkForUpdates.target = updaterController
+        appMenu.addItem(withTitle: "Automatically Check for Updates", action: #selector(toggleUpdateChecks(_:)), keyEquivalent: "")
+        appMenu.addItem(withTitle: "Automatically Download Updates", action: #selector(toggleUpdateDownloads(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit Headspace", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         let editItem = NSMenuItem(); menu.addItem(editItem); let edit = NSMenu(title:"Edit"); editItem.submenu=edit
@@ -118,11 +125,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         let viewItem = NSMenuItem(); menu.addItem(viewItem); let view = NSMenu(title:"View"); viewItem.submenu=view
         for (label, factor) in [("Original Size",1.0),("150%",1.5),("200%",2.0)] { let item=NSMenuItem(title:label,action:#selector(resize(_:)),keyEquivalent:"");item.representedObject=factor;view.addItem(item) }
         view.addItem(.separator())
-        view.addItem(.separator())
         view.addItem(withTitle:"Always on Top",action:#selector(onTop(_:)),keyEquivalent:"t")
         NSApp.mainMenu = menu
     }
     @objc func about() { let alert=NSAlert();alert.messageText="Headspace";alert.informativeText="The original Windows Media Player Headspace skin, running locally on macOS with Spotify.\n\nOriginal skin © 2000 Microsoft Corporation.\nSpotify supplies the music.\n\nEQ sliders control the decorative visualizer; The visualization is decorative.";alert.runModal() }
+    @objc func toggleUpdateChecks(_ sender: NSMenuItem) {
+        updaterController.updater.automaticallyChecksForUpdates.toggle()
+    }
+    @objc func toggleUpdateDownloads(_ sender: NSMenuItem) {
+        updaterController.updater.automaticallyDownloadsUpdates.toggle()
+    }
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(toggleUpdateChecks(_:)) {
+            menuItem.state = updaterController.updater.automaticallyChecksForUpdates ? .on : .off
+        } else if menuItem.action == #selector(toggleUpdateDownloads(_:)) {
+            menuItem.state = updaterController.updater.automaticallyDownloadsUpdates ? .on : .off
+            return updaterController.updater.automaticallyChecksForUpdates
+        }
+        return true
+    }
     @objc func resize(_ sender: NSMenuItem) { let scale=sender.representedObject as? Double ?? 1.5;window.setContentSize(NSSize(width:760*scale,height:394*scale));window.center() }
     @objc func onTop(_ sender: NSMenuItem) { window.level = window.level == .floating ? .normal : .floating;sender.state = window.level == .floating ? .on : .off }
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy)->Void) {

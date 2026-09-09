@@ -18,7 +18,7 @@ Audio streams inside the app through Spotify's Web Playback SDK and macOS WebKit
 
 The personal developer app is configured for PKCE OAuth using `http://127.0.0.1:4382/callback`. Open the library's account button to connect. The streaming scope is included. No client secret is used. Public Client ID: `05ac56334649404c8878e72b6aefac9a`.
 
-Access and refresh tokens persist in the Mac Keychain. The browser opens Spotify authorization and returns to a server bound only to `127.0.0.1`. OAuth state and the code verifier are checked before token exchange. Do not add tokens, client secrets, or Spotify account files to this repository.
+Access and refresh tokens persist in the Mac Keychain. Spotify developer-app access restrictions still apply to other accounts; distributing the DMG does not grant them access. The browser opens Spotify authorization and returns to a server bound only to `127.0.0.1`. OAuth state and the code verifier are checked before token exchange. Do not add tokens, client secrets, or Spotify account files to this repository.
 
 Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders control the decorative visualizer; they do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
 
@@ -31,7 +31,7 @@ npm install
 npm run desktop:build
 ```
 
-The complete signed local bundle is written to `~/Library/Caches/Headspace/Build/Headspace.app`. Cache storage avoids iCloud adding Finder metadata that invalidates signatures in the Documents folder.
+The Developer ID signed local bundle is written to `~/Library/Caches/Headspace/Build/Headspace.app`. Cache storage avoids iCloud adding Finder metadata that invalidates signatures in the Documents folder.
 
 With Headspace closed, install the built bundle:
 
@@ -39,11 +39,10 @@ With Headspace closed, install the built bundle:
 mkdir -p "$HOME/Applications/Headspace.app"
 rsync -a --delete "$HOME/Library/Caches/Headspace/Build/Headspace.app/" "$HOME/Applications/Headspace.app/"
 xattr -cr "$HOME/Applications/Headspace.app"
-codesign --force --sign - --identifier local.headspace.player "$HOME/Applications/Headspace.app"
 codesign --verify --deep --strict "$HOME/Applications/Headspace.app"
 ```
 
-This is a personal local bundle; it has an ad-hoc signature, not an App Store or notarized distribution build.
+Builds use the configured Developer ID Application certificate. Public downloads are notarized DMGs with Sparkle updates. See [Direct macOS releases](docs/releases.md) for publishing, signing setup, and verification. Contributors can use `npm run desktop:build -- --development` for an explicit ad-hoc local build.
 
 ## Lists and verification
 
@@ -66,7 +65,7 @@ Original Headspace skin © 2000 Microsoft Corporation; skin design credited to C
 
 The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is preserved in commit `01081d5`.
 
-The earlier Sunroom web prototype remains in the root web-app directories. The local desktop build uses `desktop/index.html` and does not publish or depend on that hosted site.
+The landing page is at `/`; the earlier Sunroom web prototype is at `/listen`. The local desktop build uses `desktop/index.html` and does not publish or depend on that hosted site.
 
 ### Visualizations
 
