@@ -46,6 +46,7 @@ import './skin.css';
 import './slider-detail.css';
 import { useAudioCapture } from './audio';
 import { Speakers } from './speakers';
+import { PreviewQueue, type PreviewPlayer } from './preview';
 import {
   TrackRows,
   CollectionRows,
@@ -218,7 +219,7 @@ function Modal({
   );
 }
 
-export default function Headspace() {
+export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [scale, setScale] = useState(() =>
     Math.min(window.innerWidth / 760, window.innerHeight / 394),
   );
@@ -229,6 +230,7 @@ export default function Headspace() {
     () => localStorage.getItem('headspace.rightOpen') !== 'false',
   );
   const [vizSettings, setVizSettings] = useState<VisualizerSettings>(() => {
+    if (preview) return defaultVisualizerSettings;
     try {
       const saved = JSON.parse(
         localStorage.getItem('headspace.visualizerSettings') || 'null',
@@ -265,7 +267,10 @@ export default function Headspace() {
   }, [vizSettings]);
   const [vizOpen, setVizOpen] = useState(false);
   const [viz, setViz] = useState(() => {
-    const value = Number(localStorage.getItem('headspace.visualization'));
+    if (preview) return 7;
+    const value = Number(
+      localStorage.getItem('headspace.visualization') ?? (preview ? 7 : 0),
+    );
     return Number.isInteger(value) &&
       value >= 0 &&
       value < visualizations.length
@@ -282,14 +287,16 @@ export default function Headspace() {
     () => localStorage.getItem('headspace.audioResponse') !== 'off',
   );
   const [audioAttempt, setAudioAttempt] = useState(0);
-  const audioStatus = useAudioCapture(audioEnabled, audioAttempt);
+  const audioStatus = useAudioCapture(!preview && audioEnabled, audioAttempt);
   useEffect(() => {
     localStorage.setItem(
       'headspace.audioResponse',
       audioEnabled ? 'on' : 'off',
     );
   }, [audioEnabled]);
-  const [playback, setPlayback] = useState<LocalPlayback>(emptyPlayback);
+  const [playback, setPlayback] = useState<LocalPlayback>(
+    () => preview?.readPlayback() ?? emptyPlayback,
+  );
   const [volume, setVolume] = useState<number | null>(null);
   const [seek, setSeek] = useState<number | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -338,13 +345,13 @@ export default function Headspace() {
     if (refreshing.current) return;
     refreshing.current = true;
     try {
-      setPlayback(await readPlayback());
+      setPlayback(preview ? preview.readPlayback() : await readPlayback());
     } catch (e) {
       report(e);
     } finally {
       refreshing.current = false;
     }
-  }, [report]);
+  }, [preview, report]);
   const loadProfile = useCallback(async () => {
     const p = object(await spotifyAPI('/me'));
     setProfile(typeof p.display_name === 'string' ? p.display_name : 'Spotify');
@@ -408,6 +415,7 @@ export default function Headspace() {
     const resize = () =>
       setScale(Math.min(window.innerWidth / 760, window.innerHeight / 394));
     window.addEventListener('resize', resize);
+    if (preview) return () => window.removeEventListener('resize', resize);
     void initializeSession()
       .then(async (ok) => {
         setConnected(ok);
@@ -448,7 +456,7 @@ export default function Headspace() {
       window.removeEventListener('resize', resize);
       window.removeEventListener('headspace-oauth', oauth);
     };
-  }, [refresh, report, loadProfile]);
+  }, [preview, refresh, report, loadProfile]);
   useEffect(() => {
     const onError = (event: Event) => {
       if (event instanceof CustomEvent && typeof event.detail === 'string')
@@ -481,9 +489,18 @@ export default function Headspace() {
     }
   }
   function control(method: string, args?: Record<string, unknown>) {
+    if (preview) {
+      return runControl(() => preview.command(method, args));
+    }
     return runControl(() => playbackCommand(method, args));
   }
   async function signIn() {
+    if (preview) {
+      setStatus(
+        'Download Headspace for Mac to connect Spotify and play music.',
+      );
+      return;
+    }
     setAuthBusy(true);
     setError('');
     try {
@@ -629,6 +646,10 @@ export default function Headspace() {
     else setPanel('account');
   }
   function playSong(t: Track) {
+    if (preview) {
+      void runControl(() => preview.playTrack(t.uri));
+      return;
+    }
     if (!t.playable) {
       setError('This track is unavailable on your Spotify account.');
       return;
@@ -695,6 +716,10 @@ export default function Headspace() {
       setStatus('Added to Spotify queue');
   }
   async function showQueue() {
+    if (preview) {
+      setPanel('queue');
+      return;
+    }
     if (!connected) {
       setPanel('account');
       return;
@@ -921,6 +946,7 @@ export default function Headspace() {
               <div className="playlist-interior">
                 <select
                   aria-label="Playlist source"
+                  disabled={Boolean(preview)}
                   value={mode === 'collection' ? activeCollection?.id : mode}
                   onChange={(e) => {
                     const p = playlists.find((p) => p.id === e.target.value);
@@ -936,7 +962,9 @@ export default function Headspace() {
                     }
                   }}
                 >
-                  <option value="recent">Recently Played</option>
+                  <option value="recent">
+                    {preview ? 'Demo queue' : 'Recently Played'}
+                  </option>
                   {mode === 'search' && (
                     <option value="search">Search Results</option>
                   )}
@@ -956,7 +984,14 @@ export default function Headspace() {
                   ))}
                 </select>
                 <div className="mini-track-list">
-                  {connected ? (
+                  {preview ? (
+                    <PreviewQueue
+                      player={preview}
+                      playback={playback}
+                      busy={busy}
+                      play={playSong}
+                    />
+                  ) : connected ? (
                     loading ? (
                       <p>Loading...</p>
                     ) : songList.length ? (
@@ -1253,30 +1288,38 @@ export default function Headspace() {
                   Reset
                 </button>
               </div>
-              <div
-                className="audio-response"
-                data-audio-state={audioStatus.state}
-              >
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={audioEnabled}
-                    onChange={(event) => setAudioEnabled(event.target.checked)}
-                  />
-                  React to Mac audio
-                  <span className="audio-status-light" />
-                </label>
-                <output>{audioStatus.message}</output>
-                {audioEnabled &&
-                  (audioStatus.state === 'denied' ||
-                    audioStatus.state === 'unavailable') && (
-                    <button
-                      onClick={() => setAudioAttempt((value) => value + 1)}
-                    >
-                      Retry audio connection
-                    </button>
-                  )}
-              </div>
+              {preview ? (
+                <p className="audio-response">
+                  Visuals and speakers react to the preview audio.
+                </p>
+              ) : (
+                <div
+                  className="audio-response"
+                  data-audio-state={audioStatus.state}
+                >
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={audioEnabled}
+                      onChange={(event) =>
+                        setAudioEnabled(event.target.checked)
+                      }
+                    />
+                    React to Mac audio
+                    <span className="audio-status-light" />
+                  </label>
+                  <output>{audioStatus.message}</output>
+                  {audioEnabled &&
+                    (audioStatus.state === 'denied' ||
+                      audioStatus.state === 'unavailable') && (
+                      <button
+                        onClick={() => setAudioAttempt((value) => value + 1)}
+                      >
+                        Retry audio connection
+                      </button>
+                    )}
+                </div>
+              )}
             </fieldset>
           )}
         </div>
@@ -1560,7 +1603,15 @@ export default function Headspace() {
               </div>
             </div>
           )}
-          {panel === 'queue' && (
+          {panel === 'queue' && preview && (
+            <PreviewQueue
+              player={preview}
+              playback={playback}
+              busy={busy}
+              play={playSong}
+            />
+          )}
+          {panel === 'queue' && !preview && (
             <div className="queue-content">
               <div className="queue-controls">
                 <button

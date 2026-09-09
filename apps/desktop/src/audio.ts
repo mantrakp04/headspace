@@ -1,11 +1,12 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import { native } from './bridge';
+import { native } from './bridge.ts';
 import {
   decayAudioFrame,
   parseAudioFrame,
   silentAudioFrame,
-} from './audio-frame';
+} from './audio-frame.ts';
 export type { AudioFrame } from './audio-frame';
+import type { AudioFrame } from './audio-frame';
 
 type CaptureStatus = {
   state: 'idle' | 'starting' | 'running' | 'denied' | 'unavailable';
@@ -13,8 +14,14 @@ type CaptureStatus = {
 };
 let latest = silentAudioFrame;
 let receivedAt = -Infinity;
+let previewSource: (() => AudioFrame) | null = null;
+
+export function setPreviewAudioSource(source: (() => AudioFrame) | null) {
+  previewSource = source;
+}
 
 export function readAudioFrame(now = performance.now()) {
+  if (previewSource) return previewSource();
   return decayAudioFrame(latest, now - receivedAt);
 }
 
