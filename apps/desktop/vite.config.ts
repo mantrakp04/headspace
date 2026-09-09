@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
+  envDir: fileURLToPath(new URL('../../', import.meta.url)),
   base: '/',
   publicDir: 'assets',
   plugins: [react()],

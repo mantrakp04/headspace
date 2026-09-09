@@ -16,3 +16,5 @@ npm-debug.log*
 *.p8
 *.key
 .vercel
+apps/site/public/embedded-player/
+apps/site/public/skin/

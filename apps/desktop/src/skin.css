@@ -85,7 +85,7 @@ a {
   border-radius: 50%;
   background: #66784a;
 }
-[data-audio-state="running"] .audio-status-light {
+[data-audio-state='running'] .audio-status-light {
   background: #b2ff4a;
   box-shadow: 0 0 3px #9feb3980;
 }
@@ -287,6 +287,98 @@ a {
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #a5c66b #285f03;
+}
+.preview-queue {
+  font:
+    7px Verdana,
+    sans-serif;
+  color: #e0ebc8;
+}
+.preview-caption {
+  display: block;
+  margin: 0;
+  padding: 3px 4px;
+  font-size: inherit;
+  line-height: 10px;
+}
+.preview-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12px;
+  align-items: center;
+  min-height: 26px;
+}
+.preview-track.selected {
+  background: #744894;
+  color: white;
+}
+.preview-track-play {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 18px;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+  padding: 2px 3px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.preview-track-play img {
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+}
+.preview-track-play strong,
+.preview-track-play small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font: inherit;
+  line-height: 10px;
+}
+.preview-track-play > span {
+  min-width: 0;
+}
+.preview-track-play small {
+  opacity: 0.8;
+  font-size: 6px;
+}
+.preview-track a {
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+  padding: 6px 0;
+}
+.preview-track-play:focus-visible,
+.preview-track a:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: -1px;
+}
+.classic-dialog .preview-queue {
+  font-size: 12px;
+}
+.classic-dialog .preview-track {
+  min-height: 44px;
+  grid-template-columns: minmax(0, 1fr) 24px;
+}
+.classic-dialog .preview-track-play {
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
+  gap: 8px;
+}
+.classic-dialog .preview-track-play img {
+  width: 32px;
+  height: 32px;
+}
+.classic-dialog .preview-track-play strong,
+.classic-dialog .preview-track-play small {
+  line-height: 16px;
+}
+.classic-dialog .preview-track-play small {
+  font-size: 10px;
 }
 .song-row {
   display: grid;

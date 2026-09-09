@@ -1,5 +1,12 @@
+import {
+  connectedSpotifyToken,
+  hexclaveAPI,
+  parseHexclaveConnection,
+  type HexclaveConnection,
+} from './hexclave.ts';
+
 export const scopes =
-  'streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played user-top-read playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-read user-library-modify user-follow-read';
+  'streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played user-top-read playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-read user-library-modify user-follow-read user-follow-modify';
 const tokenKey = 'sunroom.spotify.session';
 const pendingKey = 'sunroom.spotify.pending';
 export const clientKey = 'sunroom.spotify.client';
@@ -41,7 +48,10 @@ export type Playback = {
   updatedAt: number;
 };
 let sessionGeneration = 0;
-type Tokens = { access: string; refresh: string; expires: number };
+type Tokens = { access: string; refresh: string; expires: number } & (
+  | { issuer?: 'spotify' }
+  | { issuer: 'hexclave'; hexclave: HexclaveConnection }
+);
 export function object(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -156,11 +166,21 @@ export function collections(
 function readTokens(): Tokens | null {
   try {
     const t = object(JSON.parse(sessionStorage.getItem(tokenKey) || 'null'));
-    return typeof t.access === 'string' &&
-      typeof t.refresh === 'string' &&
-      typeof t.expires === 'number'
-      ? { access: t.access, refresh: t.refresh, expires: t.expires }
-      : null;
+    if (
+      !(
+        typeof t.access === 'string' &&
+        typeof t.refresh === 'string' &&
+        typeof t.expires === 'number' &&
+        Number.isFinite(t.expires)
+      )
+    )
+      return null;
+    const tokens = { access: t.access, refresh: t.refresh, expires: t.expires };
+    if (t.issuer === 'hexclave') {
+      const hexclave = parseHexclaveConnection(t.hexclave);
+      return hexclave ? { ...tokens, issuer: 'hexclave', hexclave } : null;
+    }
+    return t.issuer === undefined || t.issuer === 'spotify' ? tokens : null;
   } catch {
     return null;
   }
@@ -188,6 +208,7 @@ export async function authorize(
     redirect?: string;
     open?: (url: string) => void | Promise<void>;
     scope?: string;
+    hexclave?: HexclaveConnection;
   } = {},
 ) {
   callbackRequest = null;
@@ -211,6 +232,7 @@ export async function authorize(
       state,
       redirect: callback,
       created: Date.now(),
+      hexclave: options.hexclave,
     }),
   );
   const query = new URLSearchParams({
@@ -222,17 +244,42 @@ export async function authorize(
     state,
     scope: options.scope ?? scopes,
   });
-  const url = 'https://accounts.spotify.com/authorize?' + query;
+  if (options.hexclave) {
+    query.set('client_id', options.hexclave.projectId);
+    query.set('client_secret', options.hexclave.publishableClientKey);
+    query.set('scope', 'legacy');
+    query.set('provider_scope', options.scope ?? scopes);
+    query.set('type', 'authenticate');
+    query.set('grant_type', 'authorization_code');
+    query.set('error_redirect_url', callback);
+  }
+  const url =
+    (options.hexclave
+      ? `${hexclaveAPI}/auth/oauth/authorize/spotify?`
+      : 'https://accounts.spotify.com/authorize?') + query;
   if (options.open) await options.open(url);
   else window.location.assign(url);
 }
-async function exchange(body: URLSearchParams, previousRefresh = '') {
+async function exchange(
+  body: URLSearchParams,
+  previousRefresh = '',
+  hexclave?: HexclaveConnection,
+) {
   const generation = sessionGeneration;
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
+  if (hexclave) {
+    body.set('client_id', hexclave.projectId);
+    body.set('client_secret', hexclave.publishableClientKey);
+  }
+  const response = await fetch(
+    hexclave
+      ? `${hexclaveAPI}/auth/oauth/token`
+      : 'https://accounts.spotify.com/api/token',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    },
+  );
   const data = object(await response.json());
   if (!response.ok || !string(data.access_token)) {
     if (response.status === 400 || response.status === 401) disconnect();
@@ -240,26 +287,30 @@ async function exchange(body: URLSearchParams, previousRefresh = '') {
       'Spotify sign-in expired or was rejected. Please connect again.',
     );
   }
-  const tokens = {
-    access: string(data.access_token),
+  const base = {
+    access: hexclave
+      ? await connectedSpotifyToken(hexclave, string(data.access_token), scopes)
+      : string(data.access_token),
     refresh: string(data.refresh_token) || previousRefresh,
-    expires: Date.now() + number(data.expires_in) * 1000,
+    expires: Date.now() + (hexclave ? 300000 : number(data.expires_in) * 1000),
   };
+  const tokens: Tokens = hexclave
+    ? { ...base, issuer: 'hexclave', hexclave }
+    : base;
   if (generation !== sessionGeneration)
     throw new Error('Spotify was disconnected. Please connect again.');
   sessionStorage.setItem(tokenKey, JSON.stringify(tokens));
   return tokens.access;
 }
 let callbackRequest: Promise<boolean> | null = null;
-export function finishAuthorization(): Promise<boolean> {
+export function finishAuthorization(callback?: URL): Promise<boolean> {
   if (callbackRequest) return callbackRequest;
-  const initialParams = new URLSearchParams(window.location.search);
+  const initialParams = new URLSearchParams(callback?.search ?? window.location.search);
   if (!initialParams.has('code') && !initialParams.has('error'))
     return Promise.resolve(hasSession());
   callbackRequest = (async () => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('code') && !params.has('error')) return hasSession();
-    history.replaceState(null, '', window.location.pathname);
+    const params = initialParams;
+    if (!callback) history.replaceState(null, '', window.location.pathname);
     const raw = sessionStorage.getItem(pendingKey);
     sessionStorage.removeItem(pendingKey);
     if (params.has('error'))
@@ -276,6 +327,11 @@ export function finishAuthorization(): Promise<boolean> {
       throw new Error(
         'This sign-in link expired or did not match this tab. Please connect again.',
       );
+    const hexclave = parseHexclaveConnection(pending.hexclave);
+    if (pending.hexclave !== undefined && !hexclave)
+      throw new Error(
+        'This Hexclave sign-in is invalid. Please connect again.',
+      );
     await exchange(
       new URLSearchParams({
         grant_type: 'authorization_code',
@@ -284,9 +340,13 @@ export function finishAuthorization(): Promise<boolean> {
         client_id: localStorage.getItem(clientKey) || '',
         code_verifier: string(pending.verifier),
       }),
+      '',
+      hexclave ?? undefined,
     );
     return true;
-  })();
+  })().finally(() => {
+    callbackRequest = null;
+  });
   return callbackRequest;
 }
 let refreshRequest: Promise<string> | null = null;
@@ -302,6 +362,7 @@ export async function accessToken(force = false): Promise<string> {
         client_id: localStorage.getItem(clientKey) || '',
       }),
       t.refresh,
+      t.issuer === 'hexclave' ? t.hexclave : undefined,
     ).finally(() => {
       refreshRequest = null;
     });

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hxc-p-53-si-870a3bb506b56ed0c0.fly.dev/sitemap.xml

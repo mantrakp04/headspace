@@ -1,0 +1,17 @@
+.git
+node_modules
+**/node_modules
+**/.output
+**/dist
+**/.turbo
+**/.vercel
+**/.tanstack
+**/.env*
+**/__pycache__
+apps/site/public/embedded-player
+apps/site/public/skin
+*.pem
+*.key
+*.p12
+*.p8
+.DS_Store

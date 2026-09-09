@@ -5,18 +5,13 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import stylesheet from '../styles.css?url';
+import { useEffect } from 'react';
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Headspace — Your music. In a different headspace.' },
-      {
-        name: 'description',
-        content:
-          'The original lime-green Windows Media Player skin, brought back to life on macOS with Spotify, visualizations, and built-in updates.',
-      },
     ],
     links: [
       { rel: 'stylesheet', href: stylesheet },
@@ -33,6 +28,11 @@ export const Route = createRootRoute({
 });
 
 function Root() {
+  useEffect(() => {
+    void import('../analytics').catch((error: unknown) => {
+      console.error('Could not initialize Hexclave analytics', error);
+    });
+  }, []);
   return (
     <html lang="en">
       <head>

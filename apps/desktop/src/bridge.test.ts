@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, beforeEach, mock, test } from 'node:test';
 import {
   completeSignIn,
+  connectSpotify,
   initializeSession,
   native,
   persistSession,
@@ -88,4 +89,67 @@ void test('native OAuth rejects a foreign origin or non-callback path before con
   ]) {
     await assert.rejects(completeSignIn(url), /Unexpected sign-in callback/);
   }
+});
+
+void test('native connection opens Hexclave with the loopback callback and streaming scope', async () => {
+  let destination = '';
+  window.headspaceNative = {
+    async request(method, args) {
+      assert.equal(method, 'openAuth');
+      if (typeof args?.url !== 'string')
+        throw new Error('Missing authorization URL');
+      destination = args.url;
+      return true;
+    },
+    async openAuth() {},
+  };
+  await connectSpotify();
+  const url = new URL(destination);
+  assert.equal(url.origin, 'https://api.hexclave.com');
+  assert.equal(url.pathname, '/api/v1/auth/oauth/authorize/spotify');
+  assert.equal(
+    url.searchParams.get('redirect_uri'),
+    'http://127.0.0.1:4382/callback',
+  );
+  assert.ok(
+    url.searchParams.get('provider_scope')?.split(' ').includes('streaming'),
+  );
+});
+
+void test('native callback exchanges the code without exposing it to page history or analytics', async () => {
+  let authorization = '';
+  window.headspaceNative = {
+    async request(method, args) {
+      if (method === 'openAuth' && typeof args?.url === 'string')
+        authorization = args.url;
+      return true;
+    },
+    async openAuth() {},
+  };
+  Object.defineProperty(globalThis, 'history', {
+    value: {
+      replaceState() {
+        assert.fail('Native callback must not change the browser URL');
+      },
+    },
+    configurable: true,
+  });
+  mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => {
+    const request = new Request(input);
+    return Response.json(
+      request.url.endsWith('/auth/oauth/token')
+        ? { access_token: 'identity-token', refresh_token: 'hex-refresh', expires_in: 3600 }
+        : { access_token: 'spotify-playback-token' },
+    );
+  });
+  await connectSpotify();
+  const state = new URL(authorization).searchParams.get('state');
+  assert.equal(
+    await completeSignIn(`http://127.0.0.1:4382/callback?code=private-code&state=${state}`),
+    true,
+  );
+  const saved = sessionStorage.getItem(sessionKey) ?? '';
+  assert.ok(saved.includes('spotify-playback-token'));
+  assert.ok(!saved.includes('identity-token'));
+  assert.ok(!saved.includes('private-code'));
 });

@@ -4,9 +4,18 @@ import {
   clientKey,
   finishAuthorization,
   hasSession,
+  scopes,
   type Playback,
 } from '@headspace/spotify';
 export const CLIENT_ID = '05ac56334649404c8878e72b6aefac9a';
+const hexclave = {
+  projectId:
+    import.meta.env?.VITE_HEXCLAVE_PROJECT_ID ||
+    'e9d6159c-8a5c-4c2e-8a87-930b204e14ec',
+  publishableClientKey:
+    import.meta.env?.VITE_HEXCLAVE_PUBLISHABLE_CLIENT_KEY ||
+    '__stack_public_client__',
+};
 const sessionKey = 'sunroom.spotify.session';
 export type LocalPlayback = {
   running: boolean;
@@ -58,9 +67,9 @@ export async function connectSpotify() {
   return authorize(CLIENT_ID, {
     redirect: window.headspaceNative
       ? 'http://127.0.0.1:4382/callback'
-      : window.location.origin + '/',
-    scope:
-      'streaming user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-read user-library-modify user-follow-read user-follow-modify',
+      : window.location.origin + window.location.pathname,
+    scope: scopes,
+    hexclave,
     open: window.headspaceNative
       ? (url) => native('openAuth', { url }).then(() => {})
       : undefined,
@@ -70,9 +79,7 @@ export async function completeSignIn(callback: string) {
   const url = new URL(callback);
   if (url.origin !== 'http://127.0.0.1:4382' || url.pathname !== '/callback')
     throw new Error('Unexpected sign-in callback.');
-  history.replaceState(null, '', '/' + url.search);
-  const connected = await finishAuthorization();
-  history.replaceState(null, '', '/');
+  const connected = await finishAuthorization(url);
   await persistSession();
   return connected;
 }

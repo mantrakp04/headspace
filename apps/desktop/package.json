@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@headspace/spotify": "*",
+    "@hexclave/js": "1.0.113",
     "@tanstack/react-router": "1.170.32",
     "@tanstack/react-table": "9.2.4",
     "@tanstack/react-virtual": "3.14.10",

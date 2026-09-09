@@ -1,5 +1,10 @@
 import { useEffect, useId, useRef } from 'react';
 import { readAudioFrame } from './audio';
+import {
+  coneTravel,
+  updateConeMotion,
+  type ConeMotion,
+} from './speaker-motion';
 
 const cones = {
   left: [
@@ -34,30 +39,24 @@ export function Speakers({
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     let previous = performance.now();
-    let excursion = 0;
+    const motion: ConeMotion = { bassBaseline: 0, excursion: 0, velocity: 0 };
     function draw(now: number) {
       const dt = Math.min(50, now - previous);
       previous = now;
       if (!document.hidden && !freeze.current) {
         const audio = readAudioFrame(now);
-        const target = reduced.matches
-          ? 0
-          : Math.min(1, Math.sqrt(audio.bass) * 1.6);
-        excursion +=
-          (target - excursion) *
-          (1 - Math.exp(-dt / (target > excursion ? 18 : 95)));
-        if (excursion < 0.0001) excursion = 0;
+        updateConeMotion(motion, audio.bass, dt, reduced.matches);
         drivers.forEach((driver, index) => {
           const cone = cones[side][index];
-          const amount = excursion * (1 - index * 0.16);
-          const tremor = audio.waveform[64] * amount * 0.25;
-          const scale = 1 + amount * 0.065 + tremor * 0.01;
-          const dx = (side === 'left' ? -1 : 1) * amount * 0.4;
-          const dy = -amount * 0.65 + tremor;
+          const amount = motion.excursion * (1 - index * 0.12);
+          const scale = 1 + amount * 0.16;
+          const dx = (side === 'left' ? -1 : 1) * amount * coneTravel.x;
+          const dy = -amount * coneTravel.y;
           driver.setAttribute(
             'transform',
             `translate(${cone.x + dx} ${cone.y + dy}) scale(${scale}) translate(${-cone.x} ${-cone.y})`,
           );
+          driver.style.filter = `brightness(${1 + amount * 0.18})`;
         });
       }
       frame = requestAnimationFrame(draw);

@@ -16,9 +16,11 @@ Audio streams inside the app through Spotify's Web Playback SDK and macOS WebKit
 
 ## Spotify connection
 
-The personal developer app is configured for PKCE OAuth using `http://127.0.0.1:4382/callback`. Open the library's account button to connect. The streaming scope is included. No client secret is used. Public Client ID: `05ac56334649404c8878e72b6aefac9a`.
+Headspace signs in through Hexclave using the existing **Headspace Local** Spotify developer app. Hexclave receives Spotify's callback at `https://api.hexclave.com/api/v1/auth/oauth/callback/spotify`, manages its refresh tokens, and returns a separate PKCE-protected Headspace session through `http://127.0.0.1:4382/callback`.
 
-Access and refresh tokens persist in the Mac Keychain. Spotify developer-app access restrictions still apply to other accounts; distributing the DMG does not grant them access. The browser opens Spotify authorization and returns to a server bound only to `127.0.0.1`. OAuth state and the code verifier are checked before token exchange. Do not add tokens, client secrets, or Spotify account files to this repository.
+The Mac Keychain stores the Hexclave session refresh token and a cached Spotify access token. The desktop bundle contains only public project configuration. Spotify's client secret and the Hexclave server key live in the ignored repository-root `.env.local` and Hexclave's server-side configuration. Vite loads `.env.local` from the workspace root and exposes only the `VITE_` public keys. `.env.example` lists the required names without secrets.
+
+Open the library's account button and choose **Reconnect Spotify** to migrate an existing direct-PKCE session. Existing saved sessions remain usable until reconnection. Spotify Premium and developer-app account restrictions still apply; switching the token manager does not remove Spotify's access restrictions.
 
 Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders adjust the spectrum display gain. They do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
 
@@ -43,13 +45,17 @@ Use `npm run dev:web` for both browser interfaces without launching a native win
 
 The development app has its own bundle identifier, disabled update menus, and Web Inspector support. Release builds embed the compiled player and accept native bridge calls only from the bundled localhost origin. Development bundles and Sparkle dependencies live under `~/Library/Caches/Headspace/`.
 
-The browser player uses the same components, with native window controls disabled. Mac audio capture and Keychain storage require the native app. Browser Spotify sign-in uses a separate session and requires `http://127.0.0.1:4383/` in the Spotify developer app's allowed redirect URIs. Browser tokens stay in session storage. No native credentials are served over HTTP.
+The browser player uses the same components, with native window controls disabled. Mac audio capture and Keychain storage require the native app. Browser Spotify sign-in uses a separate Hexclave session. Hexclave's project allows localhost callbacks, so no additional Spotify redirect URI is needed. Browser tokens stay in session storage. No native credentials are served over HTTP.
 
 ## Landing page deployment
 
-Vercel project **headspace** belongs to **mantrakp2004s-projects** and is connected to this GitHub repository. Its root directory is `apps/site`, with TanStack Start framework detection and Nitro's Vercel adapter. Pushes to `main` deploy production; pull requests receive preview deployments. The root lockfile installs all workspace dependencies. Vercel builds only the landing app, with no Xcode or Apple signing credentials required.
+The site runs on [Hexclave Deployments](https://hxc-p-53-si-870a3bb506b56ed0c0.fly.dev), in the **Headspace** project owned by **Mantra's Team**. Project ID: `e9d6159c-8a5c-4c2e-8a87-930b204e14ec`.
 
-To link a new local checkout, run `vercel link --repo --scope mantrakp2004s-projects`. The `.vercel` directory is local metadata and is not committed. Public Mac downloads remain on GitHub Releases.
+`hexclave.deploy.ts` defines the public `site` service. Hexclave builds `apps/site/Dockerfile` from the workspace root. The image uses Node 24 and Nitro's `node-server` preset, includes the embedded player, and listens on port 3000. No Xcode or Apple signing credentials are needed by the site build. Run `npm run deploy` with an authenticated Hexclave CLI to publish the current checkout and wait for the deployment result.
+
+`.github/workflows/deploy-site.yml` deploys pushes to `main` after tests, TypeScript, and lint pass. The repository's `HEXCLAVE_SECRET_SERVER_KEY` secret is configured and expires on September 9, 2027. The workflow becomes active when committed and pushed. `apps/site/vercel.json` disables Vercel Git deployments at the same time. Existing Vercel URLs are retained for rollback. Public Mac downloads and signed Sparkle updates remain on GitHub Releases.
+
+See [deployment and OAuth migration notes](docs/hexclave-migration.md) for verification and Spotify requirements.
 
 ## Build
 
@@ -94,7 +100,7 @@ Original Headspace skin © 2000 Microsoft Corporation; skin design credited to C
 
 The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is preserved in commit `01081d5`.
 
-The landing page is its own TanStack Start app in `apps/site`, deployed to Vercel. The desktop player uses TanStack Router and Vite in `apps/desktop`. Its packaged resources do not depend on the hosted landing page. Shared Spotify API, OAuth, and playback-selection code lives in `packages/spotify`.
+The landing page is its own TanStack Start app in `apps/site`, deployed to Hexclave. The desktop player uses TanStack Router and Vite in `apps/desktop`. Its packaged resources do not depend on the hosted landing page. Shared Spotify API, OAuth, and playback-selection code lives in `packages/spotify`.
 
 ### Visualizations
 
@@ -109,3 +115,7 @@ If capture is unavailable, the chooser shows the failure and offers a retry. mac
 With the desktop dev server on port 4383, `/skin-preview.html` inspects the complete skin at multiple scales/backgrounds and `/gpu-check.html` renders all five GPU effects. `node --experimental-transform-types apps/desktop/src/visualizer-check.ts` verifies that each GPU effect responds independently to bass, mids, and treble, then returns to its silent image. Both browser fixtures are excluded from the app build.
 
 Run the native analyzer checks with `xcrun swiftc -O apps/desktop/native/AudioAnalysis.swift apps/desktop/native/tests/AudioAnalysisTests.swift -framework Accelerate -o /tmp/headspace-audio-analysis-tests && /tmp/headspace-audio-analysis-tests`. They verify frequency separation, silence, stereo phase opposition, and bounded output. Launch the built executable with `--audio-diagnostics` to print local capture counters and signal levels to stderr. This optional check does not log audio samples.
+
+## Analytics
+
+Hexclave Analytics captures page views and clicks on the site and in the desktop app. Session replay is disabled. Analytics uses an anonymous cookie session; Spotify credentials stay in the existing Keychain flow. Native callbacks are exchanged without placing OAuth codes in the page URL.

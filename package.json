@@ -16,7 +16,7 @@
     "dev:site": "turbo run dev --filter=@headspace/site",
     "dev:desktop": "turbo run dev --filter=@headspace/desktop",
     "build": "turbo run build",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "tsc --project tsconfig.hexclave.json && turbo run typecheck",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "oxfmt",
@@ -24,16 +24,18 @@
     "test:release": "npm run test:release --workspace=@headspace/desktop",
     "release": "python3 apps/desktop/scripts/release.py release",
     "release:prepare": "python3 apps/desktop/scripts/release.py prepare",
-    "release:publish": "python3 apps/desktop/scripts/release.py publish"
+    "release:publish": "python3 apps/desktop/scripts/release.py publish",
+    "deploy": "npx --yes @hexclave/cli@1.0.114 deploy --cloud-project-id e9d6159c-8a5c-4c2e-8a87-930b204e14ec"
   },
   "devDependencies": {
-    "turbo": "2.10.12",
-    "typescript": "5.9.3",
+    "@hexclave/js": "1.0.113",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
-    "oxfmt": "0.61.0"
+    "turbo": "2.10.12",
+    "typescript": "5.9.3"
   }
 }

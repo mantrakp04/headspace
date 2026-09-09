@@ -368,3 +368,147 @@ void test('a cancelled desktop sign-in can be retried in the same app process', 
   );
   assert.equal(await spotify.finishAuthorization(), true);
 });
+
+const hexclave = {
+  projectId: '00000000-0000-4000-8000-000000000001',
+  publishableClientKey: 'test-publishable-key',
+};
+
+void test('Hexclave PKCE obtains a Spotify token and refreshes through the connected account', async () => {
+  const s = await fresh();
+  await s.authorize('0123456789abcdef0123456789abcdef', {
+    hexclave,
+    redirect: 'http://127.0.0.1:4382/callback',
+  });
+  const url = new URL(destination);
+  assert.equal(url.origin, 'https://api.hexclave.com');
+  assert.equal(url.pathname, '/api/v1/auth/oauth/authorize/spotify');
+  assert.equal(url.searchParams.get('client_id'), hexclave.projectId);
+  assert.equal(
+    url.searchParams.get('client_secret'),
+    hexclave.publishableClientKey,
+  );
+  assert.equal(url.searchParams.get('scope'), 'legacy');
+  assert.equal(url.searchParams.get('provider_scope'), s.scopes);
+  const pending = JSON.parse(
+    sessionStorage.getItem('sunroom.spotify.pending') || 'null',
+  );
+  assert.equal(
+    url.searchParams.get('code_challenge'),
+    createHash('sha256').update(pending.verifier).digest('base64url'),
+  );
+  let grants = 0;
+  let providerRequests = 0;
+  mock.method(
+    globalThis,
+    'fetch',
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      const endpoint = request.url;
+      assert.ok(endpoint.startsWith('https://api.hexclave.com/api/v1/'));
+      if (endpoint.endsWith('/auth/oauth/token')) {
+        const body = new URLSearchParams(await request.text());
+        assert.equal(body.get('client_id'), hexclave.projectId);
+        assert.equal(body.get('client_secret'), hexclave.publishableClientKey);
+        if (grants++ === 0) {
+          assert.equal(body.get('grant_type'), 'authorization_code');
+          assert.equal(body.get('code_verifier'), pending.verifier);
+          return response({
+            access_token: 'hexclave-access',
+            refresh_token: 'hexclave-refresh',
+            expires_in: 60,
+          });
+        }
+        assert.equal(body.get('grant_type'), 'refresh_token');
+        assert.equal(body.get('refresh_token'), 'hexclave-refresh');
+        return response({ access_token: 'hexclave-renewed', expires_in: 60 });
+      }
+      assert.ok(
+        endpoint.endsWith('/connected-accounts/me/spotify/access-token'),
+      );
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get('x-hexclave-project-id'), hexclave.projectId);
+      assert.equal(
+        headers.get('x-hexclave-access-token'),
+        grants === 1 ? 'hexclave-access' : 'hexclave-renewed',
+      );
+      assert.equal((await request.json()).scope, s.scopes);
+      providerRequests++;
+      return response({ access_token: 'spotify-' + providerRequests });
+    },
+  );
+  location.search = '?code=authorization-code&state=' + pending.state;
+  assert.equal(await s.finishAuthorization(), true);
+  assert.equal(await s.accessToken(), 'spotify-1');
+  const saved = JSON.parse(
+    sessionStorage.getItem('sunroom.spotify.session') || 'null',
+  );
+  assert.equal(saved.issuer, 'hexclave');
+  assert.equal(saved.refresh, 'hexclave-refresh');
+  assert.equal(saved.access, 'spotify-1');
+  assert.deepEqual(
+    await Promise.all([s.accessToken(true), s.accessToken(true)]),
+    ['spotify-2', 'spotify-2'],
+  );
+  assert.equal(grants, 2);
+  assert.equal(providerRequests, 2);
+});
+
+void test('Hexclave rejects forged callback state before requesting any tokens', async () => {
+  const s = await fresh();
+  await s.authorize('0123456789abcdef0123456789abcdef', { hexclave });
+  location.search = '?code=forged&state=wrong';
+  await assert.rejects(s.finishAuthorization(), /did not match/);
+  assert.equal(s.hasSession(), false);
+});
+
+void test('Hexclave provider failure never saves its identity token as a Spotify playback token', async () => {
+  const s = await fresh();
+  await s.authorize('0123456789abcdef0123456789abcdef', { hexclave });
+  const pending = JSON.parse(
+    sessionStorage.getItem('sunroom.spotify.pending') || 'null',
+  );
+  mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) =>
+    new Request(input).url.endsWith('/auth/oauth/token')
+      ? response({
+          access_token: 'identity-only',
+          refresh_token: 'refresh',
+          expires_in: 60,
+        })
+      : response({ error: 'scope_missing' }, 403),
+  );
+  location.search = '?code=code&state=' + pending.state;
+  await assert.rejects(
+    s.finishAuthorization(),
+    /grant playback and library access/,
+  );
+  assert.equal(s.hasSession(), false);
+});
+
+void test('disconnect during Hexclave provider refresh cannot restore the session', async () => {
+  const s = await fresh();
+  sessionStorage.setItem(
+    'sunroom.spotify.session',
+    JSON.stringify({
+      issuer: 'hexclave',
+      hexclave,
+      access: 'old-spotify',
+      refresh: 'hexclave-refresh',
+      expires: 0,
+    }),
+  );
+  let release: (value: Response) => void = () => {};
+  const waiting = new Promise<Response>((resolve) => {
+    release = resolve;
+  });
+  mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) =>
+    new Request(input).url.endsWith('/auth/oauth/token')
+      ? response({ access_token: 'hexclave-access', expires_in: 60 })
+      : waiting,
+  );
+  const pending = s.accessToken();
+  s.disconnect();
+  release(response({ access_token: 'late-spotify' }));
+  await assert.rejects(pending, /disconnected/);
+  assert.equal(s.hasSession(), false);
+});
