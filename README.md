@@ -47,9 +47,13 @@ The browser player uses the same components, with native window controls disable
 
 ## Landing page deployment
 
-Vercel project **headspace** belongs to **mantrakp2004s-projects** and is connected to this GitHub repository. Its root directory is `apps/site`, with TanStack Start framework detection and Nitro's Vercel adapter. Pushes to `main` deploy production; pull requests receive preview deployments. The root lockfile installs all workspace dependencies. Vercel builds only the landing app, with no Xcode or Apple signing credentials required.
+The site runs on [Hexclave Deployments](https://hxc-p-53-si-870a3bb506b56ed0c0.fly.dev), in the **Headspace** project owned by **Mantra's Team**. Project ID: `e9d6159c-8a5c-4c2e-8a87-930b204e14ec`.
 
-To link a new local checkout, run `vercel link --repo --scope mantrakp2004s-projects`. The `.vercel` directory is local metadata and is not committed. Public Mac downloads remain on GitHub Releases.
+`hexclave.deploy.ts` defines the public `site` service. Hexclave builds `apps/site/Dockerfile` from the workspace root. The image uses Node 24 and Nitro's `node-server` preset, includes the embedded player, and listens on port 3000. No Xcode or Apple signing credentials are needed by the site build. Run `npm run deploy` with an authenticated Hexclave CLI to publish the current checkout and wait for the deployment result.
+
+`.github/workflows/deploy-site.yml` deploys pushes to `main` after tests, TypeScript, and lint pass. The repository's `HEXCLAVE_SECRET_SERVER_KEY` secret is configured and expires on September 9, 2027. The workflow becomes active when committed and pushed. `apps/site/vercel.json` disables Vercel Git deployments at the same time. Existing Vercel URLs are retained for rollback. Public Mac downloads and signed Sparkle updates remain on GitHub Releases.
+
+See [deployment and OAuth migration notes](docs/hexclave-migration.md) for verification and Spotify requirements.
 
 ## Build
 
@@ -94,7 +98,7 @@ Original Headspace skin © 2000 Microsoft Corporation; skin design credited to C
 
 The app preserves the original head, speakers, and drawer artwork. SVG/CSS controls reproduce the original jeweled buttons, embossed icons, ribbed grips, and metallic sliders without enlarging bitmap controls. Earlier generated artwork is preserved in commit `01081d5`.
 
-The landing page is its own TanStack Start app in `apps/site`, deployed to Vercel. The desktop player uses TanStack Router and Vite in `apps/desktop`. Its packaged resources do not depend on the hosted landing page. Shared Spotify API, OAuth, and playback-selection code lives in `packages/spotify`.
+The landing page is its own TanStack Start app in `apps/site`, deployed to Hexclave. The desktop player uses TanStack Router and Vite in `apps/desktop`. Its packaged resources do not depend on the hosted landing page. Shared Spotify API, OAuth, and playback-selection code lives in `packages/spotify`.
 
 ### Visualizations
 

@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["hexclave.config.ts", "hexclave.deploy.ts"]
+}

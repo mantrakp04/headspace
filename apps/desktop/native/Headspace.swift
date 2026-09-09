@@ -63,7 +63,7 @@ final class LocalServer {
         send(connection, 200, mime, data)
     }
     private func send(_ connection: NWConnection, _ status: Int, _ mime: String, _ body: Data) {
-        let headers = "HTTP/1.1 \(status) \(status == 200 ? "OK" : "Error")\r\nContent-Type: \(mime)\r\nContent-Length: \(body.count)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self' https://sdk.scdn.co; frame-src https://sdk.scdn.co; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://image-cdn-ak.spotifycdn.com data:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com; frame-ancestors 'none'; base-uri 'none'\r\nConnection: close\r\n\r\n"
+        let headers = "HTTP/1.1 \(status) \(status == 200 ? "OK" : "Error")\r\nContent-Type: \(mime)\r\nContent-Length: \(body.count)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self' https://sdk.scdn.co; frame-src https://sdk.scdn.co; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://image-cdn-ak.spotifycdn.com data:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://api.hexclave.com; frame-ancestors 'none'; base-uri 'none'\r\nConnection: close\r\n\r\n"
         var output = Data(headers.utf8); output.append(body)
         connection.send(content: output, completion: .contentProcessed { _ in connection.cancel() })
     }
@@ -184,7 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         case "drag": if let event=NSApp.currentEvent { window.performDrag(with:event) };reply(id,true)
         case "resize": let scale=min(2,max(1,args["scale"] as? Double ?? 1.5));window.setContentSize(NSSize(width:760*scale,height:394*scale));reply(id,true)
         case "openAuth":
-            guard let raw=args["url"] as? String,let url=URL(string:raw),url.scheme == "https",url.host == "accounts.spotify.com",url.path == "/authorize" else { reply(id,nil,"Invalid authorization URL");return }
+            guard let raw=args["url"] as? String,let url=URL(string:raw),url.scheme == "https",(url.host == "accounts.spotify.com" && url.path == "/authorize") || (url.host == "api.hexclave.com" && url.path == "/api/v1/auth/oauth/authorize/spotify") else { reply(id,nil,"Invalid authorization URL");return }
             pendingAuth=url
             NSWorkspace.shared.open(url);reply(id,true)
         case "authURL": reply(id,pendingAuth?.absoluteString ?? "")
