@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import type { JsonValue } from './json.ts';
 
 class MemoryStorage implements Storage {
   values = new Map<string, string>();
@@ -24,13 +25,14 @@ class MemoryStorage implements Storage {
   }
 }
 const original = new Map<string, PropertyDescriptor | undefined>();
-let destination = '';
-let location: {
+type TestLocation = {
   origin: string;
   pathname: string;
   search: string;
   assign: (url: string) => void;
 };
+let destination = '';
+let location: TestLocation;
 let moduleNumber = 0;
 async function fresh(): Promise<typeof import('./spotify.ts')> {
   return import(`./spotify.ts?test=${moduleNumber++}`);
@@ -45,8 +47,23 @@ function session(expires = Date.now() + 3600000) {
     '0123456789abcdef0123456789abcdef',
   );
 }
-function response(data: unknown, status = 200, headers?: HeadersInit) {
+function response(data: JsonValue, status = 200, headers?: HeadersInit) {
   return new Response(JSON.stringify(data), { status, headers });
+}
+function requestBodyText(body: BodyInit | null | undefined): string | null {
+  if (
+    body === undefined ||
+    body === null ||
+    body instanceof URLSearchParams ||
+    body instanceof Blob ||
+    body instanceof FormData ||
+    body instanceof ArrayBuffer ||
+    ArrayBuffer.isView(body) ||
+    body instanceof ReadableStream
+  ) {
+    return null;
+  }
+  return body;
 }
 const trackFixture = {
   id: 'sample',
@@ -217,7 +234,8 @@ void test('expired access is retried once with a fresh token and GET has no requ
       url: Parameters<typeof fetch>[0],
       init?: Parameters<typeof fetch>[1],
     ) => {
-      if (typeof url === 'string' && url.includes('/api/token'))
+      const request = new Request(url, init);
+      if (request.url.includes('/api/token'))
         return response({ access_token: 'renewed', expires_in: 3600 });
       assert.equal(init?.body, undefined);
       count++;
@@ -255,12 +273,9 @@ void test('playback commands support empty responses and descriptive permission 
       init?: Parameters<typeof fetch>[1],
     ) => {
       assert.equal(init?.method, 'PUT');
-      assert.deepEqual(
-        JSON.parse(typeof init?.body === 'string' ? init.body : 'null'),
-        {
-          uris: [trackFixture.uri],
-        },
-      );
+      assert.deepEqual(JSON.parse(requestBodyText(init?.body) ?? 'null'), {
+        uris: [trackFixture.uri],
+      });
       return new Response(null, { status: 204 });
     },
   );
@@ -511,4 +526,36 @@ void test('disconnect during Hexclave provider refresh cannot restore the sessio
   release(response({ access_token: 'late-spotify' }));
   await assert.rejects(pending, /disconnected/);
   assert.equal(s.hasSession(), false);
+});
+
+void test('playlist reads fall back on 404 while preserving pagination', async () => {
+  const spotify = await fresh();
+  session();
+  const paths: string[] = [];
+  mock.method(globalThis, 'fetch', async (url: Parameters<typeof fetch>[0]) => {
+    paths.push(url instanceof Request ? url.url : url.toString());
+    return paths.length === 1
+      ? response({ error: { message: 'Not found' } }, 404)
+      : response({ items: [{ track: trackFixture }] });
+  });
+  const page = spotify.object(
+    await spotify.api('/playlists/example/items?limit=50&offset=50'),
+  );
+  assert.equal(spotify.tracks(page.items).length, 1);
+  assert.deepEqual(paths, [
+    'https://api.spotify.com/v1/playlists/example/items?limit=50&offset=50',
+    'https://api.spotify.com/v1/playlists/example/tracks?limit=50&offset=50',
+  ]);
+});
+void test('playlist access failures do not suggest changing playback devices', async () => {
+  const spotify = await fresh();
+  session();
+  const network = mock.method(globalThis, 'fetch', async () =>
+    response({ error: { message: 'Forbidden' } }, 403),
+  );
+  await assert.rejects(
+    spotify.api('/playlists/example/items'),
+    /own or collaborate/,
+  );
+  assert.equal(network.mock.callCount(), 1);
 });

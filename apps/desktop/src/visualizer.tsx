@@ -182,107 +182,155 @@ function chrome({ ctx, audio, time }: CanvasScene) {
   }
 }
 
-function aurora({ ctx, audio, spectrum, time }: CanvasScene) {
-  for (let layer = 0; layer < 3; layer++) {
-    for (let x = 12; x < 420; x += 3) {
-      const ratio = (x - 12) / 408;
-      const level = spectrum[Math.floor(ratio * 63)] ?? 0;
-      const y =
-        138 +
-        Math.sin(ratio * 5 + time * 0.3 + layer * 0.8) *
-          (30 + audio.bass * 22) +
-        Math.sin(ratio * 11 - time * 0.16) * audio.mid * 19 +
-        layer * 23;
-      const height = 45 + level * 81 + audio.treble * 18;
-      const curtain = ctx.createLinearGradient(0, y - height, 0, y + 15);
-      curtain.addColorStop(0, 'rgba(32,41,77,0)');
-      curtain.addColorStop(
-        0.74,
-        `hsla(${160 + layer * 44 + ratio * 24} 80% 62% / ${0.15 + level * 0.27})`,
-      );
-      curtain.addColorStop(1, 'rgba(19,37,61,0)');
+function aurora({ ctx, audio, time }: CanvasScene) {
+  ctx.fillStyle = '#030a13';
+  ctx.fillRect(0, 0, 432, 316);
+  ctx.globalCompositeOperation = 'screen';
+  for (let layer = 0; layer < 4; layer++) {
+    for (let x = 0; x < 432; x += 2) {
+      const u = x / 432;
+      const fold =
+        Math.sin(u * 8 + time * 0.24 + layer * 0.7) * 24 +
+        Math.sin(u * 17 - time * 0.17 + layer) * 8;
+      const edge = 178 + fold + layer * 12;
+      const height = 95 + Math.sin(u * 6 + time * 0.2) * 26 + audio.bass * 20;
+      const light =
+        (0.22 + 0.08 * Math.sin(u * 180 + fold * 0.1)) *
+        Math.sin(u * Math.PI) ** 0.6;
+      const curtain = ctx.createLinearGradient(0, edge - height, 0, edge + 4);
+      curtain.addColorStop(0, 'rgba(65,35,100,0)');
+      curtain.addColorStop(0.35, `rgba(70,61,145,${light * 0.3})`);
+      curtain.addColorStop(0.8, `rgba(35,170,130,${light * 0.7})`);
+      curtain.addColorStop(0.96, `rgba(86,230,167,${light})`);
+      curtain.addColorStop(1, 'rgba(25,90,80,0)');
       ctx.fillStyle = curtain;
-      ctx.fillRect(x, y - height, 3, height + 15);
+      ctx.fillRect(x, edge - height, 2, height + 4);
     }
   }
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 function tunnel({ ctx, audio, time }: CanvasScene) {
-  for (let ring = 15; ring >= 0; ring--) {
-    const depth = (ring / 16 + time * 0.13) % 1;
-    const radius = 9 + depth * depth * 330;
-    const rotation = time * 0.05 + depth * 0.5 + audio.mid * 0.15;
-    ctx.strokeStyle = `hsla(${202 + depth * 89} 85% ${48 + audio.treble * 26}% / ${0.12 + depth * 0.7})`;
-    ctx.lineWidth = 0.6 + depth * 1.8;
+  const cx = 216 + Math.sin(time * 0.12) * 17;
+  const cy = 158 + Math.cos(time * 0.09) * 12;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, 0.85);
+  for (let ring = 0; ring < 24; ring++) {
+    const z = 0.12 + ((ring / 24 + time * 0.1) % 1) * 5;
+    const radius = 85 / z;
+    ctx.strokeStyle = `rgba(59,153,218,${Math.min(0.65, 0.7 / z)})`;
+    ctx.lineWidth = 0.5 + 0.7 / z;
     ctx.beginPath();
-    for (let corner = 0; corner <= 8; corner++) {
-      const angle = (corner / 8) * Math.PI * 2 + rotation;
-      const x = 216 + Math.cos(angle) * radius * (1 + audio.bass * 0.13);
-      const y = 158 + Math.sin(angle) * radius * 0.74;
-      if (corner === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.stroke();
   }
-  const center = ctx.createRadialGradient(216, 158, 0, 216, 158, 49);
-  center.addColorStop(0, 'rgba(106,147,221,0.2)');
-  center.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = center;
-  ctx.fillRect(167, 109, 98, 98);
-}
-
-function ribbons({ ctx, audio, time }: CanvasScene) {
-  for (let ribbon = 0; ribbon < 7; ribbon++) {
-    const gradient = ctx.createLinearGradient(20, 0, 412, 0);
-    gradient.addColorStop(0, 'rgba(43,89,163,0)');
-    gradient.addColorStop(0.3, `hsl(${188 + ribbon * 15} 85% 67%)`);
-    gradient.addColorStop(0.7, `hsl(${236 + ribbon * 12} 82% 72%)`);
-    gradient.addColorStop(1, 'rgba(110,54,141,0)');
+  for (let rail = 0; rail < 16; rail++) {
+    const a = (rail / 16) * Math.PI * 2 + Math.sin(time * 0.12) * 0.16;
+    const gradient = ctx.createLinearGradient(
+      0,
+      0,
+      Math.cos(a) * 300,
+      Math.sin(a) * 300,
+    );
+    gradient.addColorStop(0, 'rgba(20,75,125,0)');
+    gradient.addColorStop(1, 'rgba(65,170,230,0.45)');
     ctx.strokeStyle = gradient;
-    ctx.globalAlpha = 0.45 + ribbon * 0.06;
-    ctx.lineWidth = ribbon === 3 ? 2 : 1;
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    for (let i = 0; i <= 128; i++) {
-      const ratio = i / 128;
-      const wave = audio.waveform[Math.min(i, 127)] ?? 0;
-      const x = 20 + ratio * 392;
-      const y =
-        158 +
-        Math.sin(ratio * 7 + time * 0.35 + ribbon * 0.21) *
-          (28 + audio.bass * 29) +
-        Math.cos(ratio * 11 - time * 0.27 + ribbon * 0.14) *
-          (12 + audio.mid * 21) +
-        wave * (8 + ribbon * 2) +
-        (ribbon - 3) * 6;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-}
-
-function stars({ ctx, audio, time }: CanvasScene) {
-  for (let star = 0; star < 95; star++) {
-    const angle = star * 2.399963 + audio.mid * 0.08;
-    const distance = 14 + ((star * 0.618034 + time * 0.1) % 1) ** 2 * 250;
-    const x = 216 + Math.cos(angle) * distance * (1 + audio.bass * 0.14);
-    const y = 158 + Math.sin(angle) * distance * 0.72;
-    const length =
-      0.8 + distance * (0.015 + audio.treble * 0.06 + audio.rms * 0.03);
-    ctx.strokeStyle = `hsla(${192 + (star % 9) * 9} ${25 + audio.treble * 45}% 85% / ${0.2 + distance / 340})`;
-    ctx.lineWidth = 0.7 + distance / 240;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(
-      x + Math.cos(angle) * length,
-      y + Math.sin(angle) * length * 0.72,
+    ctx.moveTo(Math.cos(a) * 18, Math.sin(a) * 18);
+    ctx.quadraticCurveTo(
+      Math.cos(a + 0.1) * 100,
+      Math.sin(a + 0.1) * 100,
+      Math.cos(a) * 350,
+      Math.sin(a) * 350,
     );
     ctx.stroke();
   }
+  ctx.restore();
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 38);
+  core.addColorStop(0, '#020406');
+  core.addColorStop(0.4, '#020406');
+  core.addColorStop(1, 'rgba(2,4,6,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(cx - 38, cy - 38, 76, 76);
+  ctx.fillStyle = `rgba(85,160,220,${audio.bass * 0.025})`;
+  ctx.fillRect(0, 0, 432, 316);
 }
 
-const canvasScenes: Readonly<Record<number, (scene: CanvasScene) => void>> = {
+function ribbons({ ctx, audio, time }: CanvasScene) {
+  ctx.globalCompositeOperation = 'screen';
+  for (let ribbon = 0; ribbon < 3; ribbon++) {
+    const phase = time * 0.24 + ribbon * 1.7;
+    for (let strand = 0; strand < 32; strand++) {
+      const cross = (strand / 31) * 2 - 1;
+      const sheen = Math.exp(-(((cross + 0.36) * 5) ** 2));
+      const gradient = ctx.createLinearGradient(0, 0, 432, 0);
+      const color =
+        ribbon === 0
+          ? '70,185,205'
+          : ribbon === 1
+            ? '158,172,204'
+            : '218,150,99';
+      gradient.addColorStop(0, `rgba(${color},0)`);
+      gradient.addColorStop(0.25, `rgba(${color},${0.13 + sheen * 0.55})`);
+      gradient.addColorStop(0.75, `rgba(${color},${0.13 + sheen * 0.55})`);
+      gradient.addColorStop(1, `rgba(${color},0)`);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      for (let x = 0; x <= 432; x += 3) {
+        const u = (x - 216) / 158;
+        const center =
+          158 +
+          Math.sin(u * 1.8 + phase) * 47 +
+          Math.sin(u * 3.1 - phase * 0.7) * 16 +
+          (ribbon - 1) * 24;
+        const width =
+          4 +
+          19 * (0.5 + 0.5 * Math.sin(u * 2 + phase + 1)) ** 2 +
+          audio.bass * 4;
+        const y = center + cross * width;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function starSeed(n: number) {
+  const value = Math.sin(n * 127.1) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function stars({ ctx, audio, time }: CanvasScene) {
+  for (let star = 0; star < 180; star++) {
+    const angle = starSeed(star * 3 + 1) * Math.PI * 2;
+    const spread = 40 + starSeed(star * 3 + 2) * 410;
+    const phase = starSeed(star * 3 + 3) - time * 0.055;
+    const z = 0.2 + (phase - Math.floor(phase)) * 4;
+    const x = 216 + (Math.cos(angle) * spread) / z;
+    const y = 158 + (Math.sin(angle) * spread) / z;
+    const opacity =
+      Math.min(1, (z - 0.2) / 0.3, (4.2 - z) / 0.9) *
+      (0.5 + starSeed(star + 300) * 0.5);
+    const length = 0.4 + 3 / (z * z);
+    ctx.strokeStyle = `rgba(186,211,242,${opacity * 0.45})`;
+    ctx.lineWidth = 0.5 + 0.5 / z;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - Math.cos(angle) * length, y - Math.sin(angle) * length);
+    ctx.stroke();
+    ctx.fillStyle = `rgba(225,233,244,${opacity})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 0.3 + 0.4 / z + audio.treble * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+const canvasScenes = {
   0: bars,
   1: chrome,
   2: aurora,
@@ -292,6 +340,22 @@ const canvasScenes: Readonly<Record<number, (scene: CanvasScene) => void>> = {
   7: bloom,
   8: scope,
 };
+
+function canvasScene(mode: number) {
+  switch (mode) {
+    case 0:
+    case 1:
+    case 2:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+      return canvasScenes[mode];
+    default:
+      return undefined;
+  }
+}
 
 function CanvasVisualizer(props: VisualizerProps) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -329,7 +393,10 @@ function CanvasVisualizer(props: VisualizerProps) {
       }
       if (moving) {
         audio = readAudioFrame(now);
-        elapsed += dt * settings.speed * audio.rms;
+        elapsed +=
+          dt *
+          settings.speed *
+          (mode >= 2 && mode <= 6 ? 0.35 + audio.rms * 0.65 : audio.rms);
       }
       const spectrum = audio.spectrum.map((value, i) =>
         Math.min(
@@ -365,7 +432,7 @@ function CanvasVisualizer(props: VisualizerProps) {
         ctx.fillText('LOW', 24, 291);
         ctx.fillText('NOW', 388, 291);
       } else if (mode !== 3) {
-        canvasScenes[mode]?.({ ctx, audio, spectrum, time: elapsed });
+        canvasScene(mode)?.({ ctx, audio, spectrum, time: elapsed });
       }
       lastState = state;
       frame = requestAnimationFrame(draw);
@@ -464,7 +531,10 @@ function GPUVisualizer({
         previous = now;
         if (moving) {
           audio = readAudioFrame(now);
-          time += dt * settings.speed * audio.rms * 3;
+          time +=
+            dt *
+            settings.speed *
+            (mode >= 2 && mode <= 6 ? 0.6 + audio.rms * 1.4 : audio.rms * 3);
         }
         const state = JSON.stringify([mode, bands, settings]);
         if (!document.hidden && (moving || state !== lastState)) {
@@ -498,8 +568,8 @@ function GPUVisualizer({
       }
       frame = requestAnimationFrame(draw);
     }
-    void start().catch((error: unknown) => {
-      console.warn('Headspace visualizer fallback', error);
+    void start().catch((cause: unknown) => {
+      console.warn('Headspace visualizer fallback', cause);
       if (!disposed) fail.current();
     });
     return () => {

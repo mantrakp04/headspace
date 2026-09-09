@@ -5,6 +5,7 @@ import {
   finishAuthorization,
   hasSession,
   scopes,
+  type JsonValue,
   type Playback,
 } from '@headspace/spotify';
 export const CLIENT_ID = '05ac56334649404c8878e72b6aefac9a';
@@ -31,18 +32,35 @@ export type LocalPlayback = {
   duration: number;
   image: string;
 };
+export type PlaybackCommandArgs = {
+  uri?: string;
+  value?: number;
+};
+export type NativeRequestArgs = {
+  value?: string;
+  url?: string;
+};
+export type NativeResult = string | boolean | null;
 declare global {
   interface Window {
     headspaceNative?: {
-      request(method: string, args?: Record<string, unknown>): Promise<unknown>;
+      request(method: string, args?: NativeRequestArgs): Promise<NativeResult>;
       openAuth(url: string): Promise<void>;
     };
   }
+  interface WindowEventMap {
+    'headspace-oauth': CustomEvent<string>;
+    'headspace-player-error': CustomEvent<string>;
+    'headspace-playback-changed': Event;
+  }
 }
-export async function native(method: string, args?: Record<string, unknown>) {
+export async function native(method: string, args?: NativeRequestArgs) {
   if (!window.headspaceNative)
     throw new Error('This control requires the Headspace desktop app.');
   return window.headspaceNative.request(method, args);
+}
+export function nativeText(value: NativeResult): string {
+  return value === true || value === false || value === null ? '' : value;
 }
 let lastSaved = '';
 export async function persistSession() {
@@ -56,8 +74,8 @@ export async function persistSession() {
 export async function initializeSession() {
   localStorage.setItem(clientKey, CLIENT_ID);
   if (!window.headspaceNative) return finishAuthorization();
-  const saved = await native('loadSession');
-  if (typeof saved === 'string' && saved) {
+  const saved = nativeText(await native('loadSession'));
+  if (saved) {
     sessionStorage.setItem(sessionKey, saved);
     lastSaved = saved;
   }
@@ -83,7 +101,11 @@ export async function completeSignIn(callback: string) {
   await persistSession();
   return connected;
 }
-export async function spotifyAPI(path: string, method = 'GET', body?: unknown) {
+export async function spotifyAPI(
+  path: string,
+  method = 'GET',
+  body?: JsonValue,
+) {
   const result = await api(path, method, body);
   await persistSession();
   return result;

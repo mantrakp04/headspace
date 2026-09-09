@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { tracks } from '@headspace/spotify';
+import { tracks, type JsonValue } from '@headspace/spotify';
 import {
   playSelection,
   playbackCommand,
@@ -20,13 +20,13 @@ class MemoryStorage {
     this.values.delete(key);
   }
 }
-const listeners = new Map<string, (data: unknown) => void>();
+const listeners = new Map<string, (data: JsonValue) => void>();
 let repeat = 0;
 let shuffle = false;
 let active = false;
 const sdkCalls: string[] = [];
 class SpotifyPlayerFixture {
-  addListener(name: string, callback: (data: unknown) => void) {
+  addListener(name: string, callback: (data: JsonValue) => void) {
     listeners.set(name, callback);
   }
   async connect() {
@@ -73,7 +73,7 @@ class SpotifyPlayerFixture {
   }
 }
 const original = new Map<string, PropertyDescriptor | undefined>();
-const requests: { url: URL; method: string; body: unknown }[] = [];
+const requests: { url: URL; method: string; body: JsonValue }[] = [];
 const items = tracks(
   ['one', 'two', 'three'].map((name) => ({
     name,
@@ -116,10 +116,21 @@ beforeEach(() => {
     'fetch',
     async (input: string | URL | Request, init?: RequestInit) => {
       const url = new URL(input instanceof Request ? input.url : input);
+      const body = init?.body;
       requests.push({
         url,
         method: init?.method ?? 'GET',
-        body: typeof init?.body === 'string' ? JSON.parse(init.body) : null,
+        body:
+          body === undefined ||
+          body === null ||
+          body instanceof URLSearchParams ||
+          body instanceof Blob ||
+          body instanceof FormData ||
+          body instanceof ArrayBuffer ||
+          ArrayBuffer.isView(body) ||
+          body instanceof ReadableStream
+            ? null
+            : JSON.parse(body),
       });
       if (url.pathname.endsWith('/play')) active = true;
       if (url.pathname.endsWith('/repeat'))

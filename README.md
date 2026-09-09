@@ -55,8 +55,6 @@ The site runs on [Hexclave Deployments](https://hxc-p-53-si-870a3bb506b56ed0c0.f
 
 `.github/workflows/deploy-site.yml` deploys pushes to `main` after tests, TypeScript, and lint pass. The repository's `HEXCLAVE_SECRET_SERVER_KEY` secret is configured and expires on September 9, 2027. The workflow becomes active when committed and pushed. `apps/site/vercel.json` disables Vercel Git deployments at the same time. Existing Vercel URLs are retained for rollback. Public Mac downloads and signed Sparkle updates remain on GitHub Releases.
 
-See [deployment and OAuth migration notes](docs/hexclave-migration.md) for verification and Spotify requirements.
-
 ## Build
 
 Requires Apple Silicon macOS 14+, Xcode command-line tools, and Node 24+.
@@ -77,7 +75,7 @@ xattr -cr "$HOME/Applications/Headspace.app"
 codesign --verify --deep --strict "$HOME/Applications/Headspace.app"
 ```
 
-Builds use the configured Developer ID Application certificate. Public downloads are notarized DMGs with Sparkle updates. See [Direct macOS releases](docs/releases.md) for publishing, signing setup, and verification. Contributors can use `npm run desktop:build -- --development` for an explicit ad-hoc local build.
+Builds use the configured Developer ID Application certificate. Public downloads are notarized DMGs with Sparkle updates. On the signing Mac, `npm run release` notarizes the app and DMG, signs the Sparkle feed, and publishes GitHub Release assets. Contributors can use `npm run desktop:build -- --development` for an explicit ad-hoc local build.
 
 ## Lists and verification
 

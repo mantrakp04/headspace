@@ -1,5 +1,7 @@
+import type { JsonValue } from './json.ts';
+
 export type WebPlayer = {
-  getCurrentState(): Promise<unknown>;
+  getCurrentState(): Promise<JsonValue>;
   getVolume(): Promise<number>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -11,7 +13,7 @@ export type WebPlayer = {
   disconnect(): void;
   activateElement(): Promise<void>;
   setVolume(volume: number): Promise<void>;
-  addListener(name: string, callback: (data: unknown) => void): void;
+  addListener(name: string, callback: (data: JsonValue) => void): void;
 };
 declare global {
   interface Window {

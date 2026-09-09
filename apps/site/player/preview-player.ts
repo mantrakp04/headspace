@@ -1,4 +1,7 @@
-import type { LocalPlayback } from '../../desktop/src/bridge';
+import type {
+  LocalPlayback,
+  PlaybackCommandArgs,
+} from '../../desktop/src/bridge';
 import type { PreviewPlayer } from '../../desktop/src/preview';
 import { analyseSamples } from '../../desktop/src/analyser-frame.ts';
 import { silentAudioFrame } from '../../desktop/src/audio-frame.ts';
@@ -102,7 +105,7 @@ export function createPreviewPlayer(): PreviewPlayer & {
     await play();
   }
 
-  async function command(method: string, args: Record<string, unknown> = {}) {
+  async function command(method: string, args: PlaybackCommandArgs = {}) {
     switch (method) {
       case 'play':
         return play();
@@ -131,7 +134,7 @@ export function createPreviewPlayer(): PreviewPlayer & {
       }
       case 'volume':
       case 'seek': {
-        if (typeof args.value !== 'number' || !Number.isFinite(args.value))
+        if (args.value === undefined || !Number.isFinite(args.value))
           throw new Error('Invalid playback value.');
         if (method === 'volume') {
           volume = Math.max(0, Math.min(100, args.value));
@@ -216,10 +219,10 @@ export function createPreviewPlayer(): PreviewPlayer & {
     });
     void play()
       .then(disarmAutoplay)
-      .catch((error: unknown) => {
+      .catch((cause: unknown) => {
         if (!active) return;
         if (
-          !(error instanceof DOMException && error.name === 'NotAllowedError')
+          !(cause instanceof DOMException && cause.name === 'NotAllowedError')
         ) {
           disarmAutoplay();
           report();

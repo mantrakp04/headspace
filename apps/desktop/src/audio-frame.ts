@@ -1,3 +1,9 @@
+import {
+  isFiniteNumber,
+  isJsonObject,
+  type JsonValue,
+} from '@headspace/spotify';
+
 export type AudioFrame = {
   spectrum: number[];
   waveform: number[];
@@ -19,7 +25,7 @@ export const silentAudioFrame: AudioFrame = {
 };
 
 function samples(
-  value: unknown,
+  value: JsonValue | undefined,
   length: number,
   minimum: number,
 ): value is number[] {
@@ -27,41 +33,24 @@ function samples(
     Array.isArray(value) &&
     value.length === length &&
     value.every(
-      (sample: unknown) =>
-        typeof sample === 'number' &&
-        Number.isFinite(sample) &&
-        sample >= minimum &&
-        sample <= 1,
+      (sample) => isFiniteNumber(sample) && sample >= minimum && sample <= 1,
     )
   );
 }
 
-function level(value: unknown): value is number {
-  return (
-    typeof value === 'number' &&
-    Number.isFinite(value) &&
-    value >= 0 &&
-    value <= 1
-  );
+function level(value: JsonValue | undefined): value is number {
+  return isFiniteNumber(value) && value >= 0 && value <= 1;
 }
 
-export function parseAudioFrame(value: unknown): AudioFrame | null {
+export function parseAudioFrame(value: JsonValue): AudioFrame | null {
   if (
-    !value ||
-    typeof value !== 'object' ||
-    !('spectrum' in value) ||
+    !isJsonObject(value) ||
     !samples(value.spectrum, 64, 0) ||
-    !('waveform' in value) ||
     !samples(value.waveform, 128, -1) ||
-    !('bass' in value) ||
     !level(value.bass) ||
-    !('mid' in value) ||
     !level(value.mid) ||
-    !('treble' in value) ||
     !level(value.treble) ||
-    !('rms' in value) ||
     !level(value.rms) ||
-    !('peak' in value) ||
     !level(value.peak)
   )
     return null;

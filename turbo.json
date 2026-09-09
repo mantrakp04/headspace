@@ -41,6 +41,7 @@
   },
   "globalDependencies": [
     "tsconfig.base.json",
-    ".oxlintrc.json"
+    ".oxlintrc.json",
+    "tools/oxlint/anti-slop/**"
   ]
 }

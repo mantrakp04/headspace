@@ -4,6 +4,32 @@ import {
   parseHexclaveConnection,
   type HexclaveConnection,
 } from './hexclave.ts';
+import {
+  decodeJson,
+  decodeResponseJson,
+  isFiniteNumber,
+  isJsonString,
+  list,
+  object,
+  string,
+  tryDecodeJson,
+  type JsonValue,
+} from './json.ts';
+
+export {
+  decodeJson,
+  decodeResponseJson,
+  isFiniteNumber,
+  isJsonBoolean,
+  isJsonObject,
+  isJsonString,
+  list,
+  object,
+  string,
+  tryDecodeJson,
+  type JsonObject,
+  type JsonValue,
+} from './json.ts';
 
 export const scopes =
   'streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played user-top-read playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-read user-library-modify user-follow-read user-follow-modify';
@@ -52,29 +78,18 @@ type Tokens = { access: string; refresh: string; expires: number } & (
   | { issuer?: 'spotify' }
   | { issuer: 'hexclave'; hexclave: HexclaveConnection }
 );
-export function object(value: unknown): Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
+function number(value: JsonValue | undefined): number {
+  return isFiniteNumber(value) ? value : 0;
 }
-export function list(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-export function string(value: unknown): string {
-  return typeof value === 'string' ? value : '';
-}
-function number(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
-}
-function picture(value: unknown): string {
+function picture(value: JsonValue | undefined): string {
   const url = string(object(list(value)[0]).url);
   return url.startsWith('https://') ? url : '';
 }
-function external(value: unknown): string {
+function external(value: JsonValue | undefined): string {
   const url = string(object(value).spotify);
   return url.startsWith('https://open.spotify.com/') ? url : '';
 }
-export function parseTrack(value: unknown): Track | null {
+export function parseTrack(value: JsonValue | undefined): Track | null {
   const t = object(value),
     album = object(t.album),
     show = object(t.show);
@@ -98,7 +113,7 @@ export function parseTrack(value: unknown): Track | null {
   };
 }
 export function parseCollection(
-  value: unknown,
+  value: JsonValue | undefined,
   kind: Collection['kind'],
 ): Collection | null {
   const c = object(value);
@@ -120,18 +135,18 @@ export function parseCollection(
     url: external(c.external_urls),
   };
 }
-export function parseDevice(value: unknown): Device | null {
+export function parseDevice(value: JsonValue | undefined): Device | null {
   const d = object(value);
   if (!string(d.id)) return null;
   return {
     id: string(d.id),
     name: string(d.name),
     active: d.is_active === true,
-    volume: typeof d.volume_percent === 'number' ? d.volume_percent : null,
+    volume: isFiniteNumber(d.volume_percent) ? d.volume_percent : null,
     restricted: d.is_restricted === true,
   };
 }
-export function parsePlayback(value: unknown): Playback {
+export function parsePlayback(value: JsonValue | undefined): Playback {
   const p = object(value);
   return {
     track: parseTrack(p.item),
@@ -146,7 +161,7 @@ export function parsePlayback(value: unknown): Playback {
     updatedAt: Date.now(),
   };
 }
-export function tracks(value: unknown, offset = 0): Track[] {
+export function tracks(value: JsonValue | undefined, offset = 0): Track[] {
   return list(value).flatMap((v, index) => {
     const o = object(v);
     const t = parseTrack(o.track ?? o.item ?? v);
@@ -154,7 +169,7 @@ export function tracks(value: unknown, offset = 0): Track[] {
   });
 }
 export function collections(
-  value: unknown,
+  value: JsonValue | undefined,
   kind: Collection['kind'],
 ): Collection[] {
   return list(value).flatMap((v) => {
@@ -165,13 +180,12 @@ export function collections(
 }
 function readTokens(): Tokens | null {
   try {
-    const t = object(JSON.parse(sessionStorage.getItem(tokenKey) || 'null'));
+    const t = object(decodeJson(sessionStorage.getItem(tokenKey) || 'null'));
     if (
       !(
-        typeof t.access === 'string' &&
-        typeof t.refresh === 'string' &&
-        typeof t.expires === 'number' &&
-        Number.isFinite(t.expires)
+        isJsonString(t.access) &&
+        isJsonString(t.refresh) &&
+        isFiniteNumber(t.expires)
       )
     )
       return null;
@@ -280,7 +294,7 @@ async function exchange(
       body,
     },
   );
-  const data = object(await response.json());
+  const data = object(await decodeResponseJson(response));
   if (!response.ok || !string(data.access_token)) {
     if (response.status === 400 || response.status === 401) disconnect();
     throw new Error(
@@ -305,7 +319,9 @@ async function exchange(
 let callbackRequest: Promise<boolean> | null = null;
 export function finishAuthorization(callback?: URL): Promise<boolean> {
   if (callbackRequest) return callbackRequest;
-  const initialParams = new URLSearchParams(callback?.search ?? window.location.search);
+  const initialParams = new URLSearchParams(
+    callback?.search ?? window.location.search,
+  );
   if (!initialParams.has('code') && !initialParams.has('error'))
     return Promise.resolve(hasSession());
   callbackRequest = (async () => {
@@ -317,7 +333,7 @@ export function finishAuthorization(callback?: URL): Promise<boolean> {
       throw new Error(
         'Spotify connection was cancelled. You can try again whenever you like.',
       );
-    const pending = object(JSON.parse(raw || 'null'));
+    const pending = object(decodeJson(raw || 'null'));
     if (
       !string(pending.state) ||
       params.get('state') !== pending.state ||
@@ -380,9 +396,9 @@ export class SpotifyError extends Error {
 export async function api(
   path: string,
   method = 'GET',
-  body?: unknown,
+  body?: JsonValue,
   retry = true,
-): Promise<unknown> {
+): Promise<JsonValue> {
   if (!path.startsWith('/') || path.startsWith('//'))
     throw new Error('Invalid Spotify request.');
   if (Date.now() < blockedUntil)
@@ -391,51 +407,53 @@ export async function api(
       429,
     );
   const token = await accessToken();
-  const response = await fetch('https://api.spotify.com/v1' + path, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-    },
-    ...(method === 'GET' || body === undefined
-      ? {}
-      : { body: JSON.stringify(body) }),
-  });
+  const headers = new Headers({ Authorization: `Bearer ${token}` });
+  const request: RequestInit = { method, headers };
+  if (body !== undefined) {
+    headers.set('Content-Type', 'application/json');
+    if (method !== 'GET') request.body = JSON.stringify(body);
+  }
+  const response = await fetch('https://api.spotify.com/v1' + path, request);
   if (response.status === 401 && retry) {
     await accessToken(true);
     return api(path, method, body, false);
   }
+  if (
+    response.status === 404 &&
+    method === 'GET' &&
+    /^\/playlists\/[^/]+\/items(?:\?|$)/.test(path)
+  )
+    return api(path.replace('/items', '/tracks'), method, body, retry);
   if (response.status === 204) return null;
-  const raw = await response.text();
-  let data: unknown = null;
-  try {
-    data = raw ? JSON.parse(raw) : null;
-  } catch {
-    /* Spotify can return a text error body. */
-  }
+  const data = tryDecodeJson(await response.text());
   if (!response.ok) {
     const error = object(object(data).error);
     if (response.status === 429)
       blockedUntil =
         Date.now() +
         Math.max(30, Number(response.headers.get('Retry-After')) || 30) * 1000;
+    const playlistRead =
+      method === 'GET' &&
+      /^\/playlists\/[^/]+\/(items|tracks)(?:\?|$)/.test(path);
     const message =
-      response.status === 403
-        ? 'Spotify did not allow this action. Check your Premium subscription, app access list, and granted permissions.'
-        : response.status === 404
-          ? 'Spotify could not find this item or an active player. Choose a device and try again.'
-          : response.status === 429
-            ? error.reason === 'QUOTA_EXCEEDED'
-              ? 'Your Spotify developer account has reached its API quota. Try again after the quota resets.'
-              : 'Spotify is limiting requests. Please wait before trying again.'
-            : string(error.message) ||
-              'Spotify could not complete the request. Please try again.';
+      playlistRead && (response.status === 403 || response.status === 404)
+        ? 'Spotify could not load this playlist’s songs. Check playlist access. Spotify development apps can only read playlists you own or collaborate on.'
+        : response.status === 403
+          ? 'Spotify did not allow this action. Check your Premium subscription, app access list, and granted permissions.'
+          : response.status === 404
+            ? 'Spotify could not find this item or an active player. Choose a device and try again.'
+            : response.status === 429
+              ? error.reason === 'QUOTA_EXCEEDED'
+                ? 'Your Spotify developer account has reached its API quota. Try again after the quota resets.'
+                : 'Spotify is limiting requests. Please wait before trying again.'
+              : string(error.message) ||
+                'Spotify could not complete the request. Please try again.';
     throw new SpotifyError(message, response.status);
   }
   return data;
 }
-export function pagePath(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
+export function pagePath(value: JsonValue | undefined): string | null {
+  if (!isJsonString(value)) return null;
   const url = new URL(value, 'https://api.spotify.com');
   return url.origin === 'https://api.spotify.com' &&
     url.pathname.startsWith('/v1/')

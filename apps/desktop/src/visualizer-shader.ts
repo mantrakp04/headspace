@@ -4,6 +4,7 @@ struct Params { time: f32, mode: f32, hue: f32, glow: f32, energy: f32, aspect: 
 fn palette(x: f32) -> vec3f {
   return .52 + .48 * cos(6.28318 * (vec3f(.0,.33,.67) + x + params.hue));
 }
+fn hash(n: f32) -> f32 { return fract(sin(n*127.1)*43758.5453); }
 fn rotate(p: vec2f, a: f32) -> vec2f {
   return vec2f(cos(a)*p.x-sin(a)*p.y,sin(a)*p.x+cos(a)*p.y);
 }
@@ -41,42 +42,85 @@ fn normal(p: vec3f) -> vec3f {
     }
     col += palette(.6)*.025/(.15+abs(length(p*vec2f(.8,1.))-1.));
   } else if(mode == 2) {
-    for(var i=0.; i<16.; i+=1.) {
-      let depth = i/16.;
-      let y = sin(p.x*(2.+params.bass*1.4)+t*.24+depth*3.)*(.23+params.mid*.2) + sin(p.x*4.5-t*.18+depth)*(.12+params.treble*.12);
-      let curtain = exp(-abs(p.y-y+depth*.4-.2)*(9.+depth*16.));
-      let ribs = .5+.5*sin(p.x*(36.+params.treble*24.)+sin(p.x*9.+t)*2.+depth*3.);
-      col += palette(depth*.22+.35)*curtain*(.075+ribs*.085)*(1.-depth);
+    col = vec3f(.004,.012,.025);
+    for(var i=0.;i<5.;i+=1.) {
+      let k = i/5.;
+      let x = p.x+sin(t*.11+k*3.)*.18;
+      let fold = sin(x*2.1+t*.18+k*2.)*.22+sin(x*4.3-t*.13+k)*.08;
+      let edge = p.y-(.2+fold+k*.11);
+      let height = .28+.12*sin(x*2.-t*.17+k)+params.bass*.08;
+      let veil = exp(-max(-edge,0.)/height)*(1.-smoothstep(-.035,.035,edge));
+      let strands = .75+.15*sin(x*68.+sin(x*7.-t*.3)*3.+k*13.);
+      let taper = exp(-pow(abs(x)/1.35,4.));
+      let green = mix(vec3f(.07,.85,.46),vec3f(.18,.48,.87),k);
+      let crown = mix(vec3f(.24,.1,.48),green,exp(-abs(edge)*4.));
+      col += crown*veil*strands*taper*(.25+params.mid*.08);
+      col += green*exp(-abs(edge)*100.)*.12*taper;
     }
   } else if(mode == 4) {
-    let radius = max(length(p),.025); let angle = atan2(p.y,p.x);
-    let depth = (1.2+params.bass*.35)/radius+t*.45;
-    let ring = pow(.5+.5*cos(depth*9.),22.);
-    let spoke = pow(.5+.5*cos(angle*10.+sin(depth*.35+t*.2+params.mid*2.)+params.treble*2.),35.);
-    col = palette(depth*.03+angle*.07)*(.025+ring*.9+spoke*.55)*smoothstep(.04,.32,radius);
-    col *= .65+.35*sin(depth*.8);
+    let q = p-vec2f(sin(t*.12)*.12,cos(t*.09)*.08);
+    let radius = max(length(q),.035);
+    let angle = atan2(q.y,q.x);
+    let depth = 1./radius;
+    let travel = depth-t*.8;
+    let aa = max(fwidth(travel),.012);
+    let ringDistance = abs(fract(travel*.8)-.5)/.8;
+    let rings = 1.-smoothstep(.014,.014+aa,ringDistance);
+    let twist = angle+depth*.055+sin(t*.12)*.16;
+    let railDistance = abs(sin(twist*8.))*radius;
+    let rails = 1.-smoothstep(.002,.002+fwidth(railDistance)*1.5,railDistance);
+    let fade = smoothstep(.06,.5,radius);
+    let light = .5+.5*cos(twist-1.);
+    col = mix(vec3f(.025,.11,.3),vec3f(.1,.64,.9),light)*(rings*.75+rails*.4)*fade;
+    col += vec3f(.045,.17,.32)*exp(-radius*3.)*.25;
+    for(var i=0.;i<28.;i+=1.) {
+      let a = hash(i+43.)*6.28318;
+      let z = .18+fract(hash(i+9.)-t*.11)*4.;
+      let center = vec2f(cos(a),sin(a))*.8/z;
+      let d = p-center;
+      let along = dot(d,normalize(center));
+      let side = dot(d,vec2f(-sin(a),cos(a)));
+      col += vec3f(.25,.65,1.)*exp(-side*side/.000012-along*along/(.001/z))*smoothstep(.18,.5,z)*.65;
+    }
   } else if(mode == 5) {
-    for(var i=0.;i<7.;i+=1.) {
-      let k = i*.3;
-      let y = sin(p.x*(2.5+params.bass)+t*.35+k)*(.34+params.mid*.28)+cos(p.x*(4.+params.treble*3.)-t*.25+k)*.16;
-      let dist = abs(p.y-y-(i-3.)*.055);
-      col += palette(k*.22+t*.025)*(.0025/(dist+.007)+.2*exp(-dist*45.));
+    for(var i=0.;i<3.;i+=1.) {
+      let phase = t*.24+i*1.7;
+      let x = p.x;
+      let center = sin(x*1.8+phase)*.3+sin(x*3.1-phase*.7)*.1+(i-1.)*.15;
+      let width = .025+.12*pow(.5+.5*sin(x*2.+phase+1.),2.)+params.bass*.025;
+      let crossSection = (p.y-center)/width;
+      let body = exp(-pow(abs(crossSection),4.)*1.8);
+      let sheen = exp(-pow((crossSection+.36)*5.,2.));
+      let edge = exp(-pow((abs(crossSection)-.85)*22.,2.));
+      let taper = exp(-pow(abs(x)/1.3,6.));
+      let silk = mix(vec3f(.035,.32,.42),vec3f(.52,.28,.16),i/2.);
+      col += (silk*body*(.38+.4*crossSection)+mix(silk,vec3f(.8,.9,1.),.6)*sheen*.45+silk*edge*.3)*taper;
+      col += silk*exp(-abs(p.y-center)*12.)*.07*taper;
     }
   } else if(mode == 6) {
-    for(var i=0; i<70; i++) {
-      let id = f32(i);
-      let angle = id*2.39996+params.mid*.2;
-      let radius = (.3+fract(id*.618)*1.8)*(1.+params.bass*.35);
-      let z = .25+fract(id*.137-t*.14)*3.;
-      let center = vec2f(cos(angle),sin(angle))*radius/z;
+    col = vec3f(.003,.006,.014);
+    let drift = vec2f(sin(t*.07),cos(t*.06))*.055;
+    for(var i=0.;i<120.;i+=1.) {
+      let angle = hash(i*3.+1.)*6.28318;
+      let spread = .25+hash(i*3.+2.)*2.6;
+      let z = .2+fract(hash(i*3.+3.)-t*.055)*4.;
+      let center = vec2f(cos(angle),sin(angle))*spread/z+drift;
       let delta = p-center;
-      let distance = length(delta);
-      let streak = abs(dot(delta,normalize(center)));
-      let side = abs(dot(delta,vec2f(-sin(angle),cos(angle))));
-      let star = .7*exp(-distance*distance*18000.) + .28*exp(-side*side*24000.-streak*(80.-params.treble*45.)*z);
-      col += palette(id*.03)*star;
+      let along = dot(delta,vec2f(cos(angle),sin(angle)));
+      let side = dot(delta,vec2f(-sin(angle),cos(angle)));
+      let size = .0024+.003/z;
+      let trail = .003+.018/(z*z);
+      let core = exp(-dot(delta,delta)/(size*size));
+      let streak = exp(-side*side/(size*size)-pow((along+trail)/trail,2.))*.32;
+      let fade = smoothstep(.2,.5,z)*(1.-smoothstep(3.3,4.2,z));
+      let tint = mix(vec3f(.55,.72,1.),vec3f(1.,.88,.7),hash(i+600.));
+      col += tint*(core+streak)*fade*(.9+hash(i+300.)*.8+params.treble*.2);
     }
-    col += palette(.45)*.009/(length(p)+.15);
+  }
+  if(mode != 1) {
+    let axis = normalize(vec3f(1.));
+    let angle = params.hue*6.28318;
+    col = col*cos(angle)+cross(axis,col)*sin(angle)+axis*dot(axis,col)*(1.-cos(angle));
   }
   let vignette = 1.-smoothstep(.55,1.6,length(p*.75));
   col *= vignette*params.glow*(.85+params.energy*.15);

@@ -29,8 +29,8 @@ export const Route = createRootRoute({
 
 function Root() {
   useEffect(() => {
-    void import('../analytics').catch((error: unknown) => {
-      console.error('Could not initialize Hexclave analytics', error);
+    void import('../analytics').catch((cause: unknown) => {
+      console.error('Could not initialize Hexclave analytics', cause);
     });
   }, []);
   return (

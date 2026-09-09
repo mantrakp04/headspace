@@ -40,6 +40,6 @@ async function check() {
   if (output)
     output.textContent = 'All five shaders compiled and rendered with WebGPU.';
 }
-void check().catch((error: unknown) => {
-  if (output) output.textContent = String(error);
+void check().catch((cause: unknown) => {
+  if (output) output.textContent = String(cause);
 });

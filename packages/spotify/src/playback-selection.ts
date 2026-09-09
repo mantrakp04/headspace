@@ -2,8 +2,9 @@ import {
   object,
   pagePath,
   tracks,
-  type Track,
+  type JsonValue,
   type Playback,
+  type Track,
 } from './spotify.ts';
 
 export type PlaybackSelection =
@@ -25,7 +26,7 @@ export type PlaybackBody =
 
 export async function resolvePlayback(
   selection: PlaybackSelection,
-  request: (path: string) => Promise<unknown>,
+  request: (path: string) => Promise<JsonValue>,
 ): Promise<PlaybackBody> {
   if (selection.kind === 'context') {
     if (!/^spotify:(album|playlist|artist):[a-zA-Z0-9]+$/.test(selection.uri))
@@ -34,16 +35,18 @@ export async function resolvePlayback(
     if (track && !track.playable) throw new Error('This track is unavailable.');
     if (track && selection.uri.startsWith('spotify:artist:'))
       throw new Error('Choose an album to start at a specific song.');
+    if (!track) {
+      return {
+        context_uri: selection.uri,
+        position_ms: 0,
+      };
+    }
     return {
       context_uri: selection.uri,
-      ...(track
-        ? {
-            offset:
-              track.contextPosition === undefined
-                ? { uri: track.uri }
-                : { position: track.contextPosition },
-          }
-        : {}),
+      offset:
+        track.contextPosition === undefined
+          ? { uri: track.uri }
+          : { position: track.contextPosition },
       position_ms: 0,
     };
   }
@@ -76,6 +79,6 @@ export function nextRepeat(mode: Playback['repeat']): Playback['repeat'] {
   return mode === 'off' ? 'context' : mode === 'context' ? 'track' : 'off';
 }
 
-export function sdkRepeat(mode: unknown): Playback['repeat'] {
+export function sdkRepeat(mode: JsonValue | undefined): Playback['repeat'] {
   return mode === 1 ? 'context' : mode === 2 ? 'track' : 'off';
 }

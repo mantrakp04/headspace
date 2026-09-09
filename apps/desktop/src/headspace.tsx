@@ -1,3 +1,4 @@
+import { SongCard } from './song-card';
 import {
   useCallback,
   useEffect,
@@ -8,8 +9,12 @@ import {
 } from 'react';
 import {
   collections,
+  decodeJson,
   disconnect,
   formatTime,
+  isFiniteNumber,
+  isJsonBoolean,
+  isJsonString,
   list,
   object,
   pagePath,
@@ -24,8 +29,10 @@ import {
   connectSpotify,
   initializeSession,
   native,
+  nativeText,
   spotifyAPI,
   type LocalPlayback,
+  type PlaybackCommandArgs,
 } from './bridge';
 import {
   startPlayer,
@@ -46,7 +53,7 @@ import './skin.css';
 import './slider-detail.css';
 import { useAudioCapture } from './audio';
 import { Speakers } from './speakers';
-import { PreviewQueue, type PreviewPlayer } from './preview';
+import { PlaylistTracks, PreviewQueue, type PreviewPlayer } from './preview';
 import {
   TrackRows,
   CollectionRows,
@@ -219,6 +226,22 @@ function Modal({
   );
 }
 
+const BAND_PRESETS = [
+  { name: 'Flat', bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Bass boost', bands: [10, 9, 7, 4, 1, 0, 0, 0, 0, 0] },
+  { name: 'Dance', bands: [8, 7, 4, 0, -3, -2, 2, 5, 7, 8] },
+  { name: 'Vocals', bands: [-4, -3, 0, 4, 7, 8, 6, 2, -1, -3] },
+  { name: 'Treble boost', bands: [0, 0, 0, 0, 1, 3, 5, 7, 9, 10] },
+  { name: 'Rock', bands: [6, 4, 2, -2, -3, 0, 3, 5, 6, 6] },
+  { name: 'Pop', bands: [-1, 2, 4, 5, 3, 0, -1, -1, 2, 3] },
+  { name: 'Electronic', bands: [7, 6, 2, 0, -3, 1, 2, 4, 6, 7] },
+  { name: 'Hip-hop', bands: [8, 7, 4, 2, -1, -1, 2, 3, 2, 1] },
+  { name: 'Jazz', bands: [4, 3, 1, 2, -2, -2, 0, 2, 4, 5] },
+  { name: 'Classical', bands: [4, 3, 2, 0, -2, -2, 0, 2, 3, 4] },
+  { name: 'Acoustic', bands: [3, 3, 2, 1, 3, 4, 3, 2, 3, 4] },
+  { name: 'Soft', bands: [-5, -4, -3, -2, -2, -3, -4, -5, -6, -7] },
+];
+
 export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [scale, setScale] = useState(() =>
     Math.min(window.innerWidth / 760, window.innerHeight / 394),
@@ -232,21 +255,22 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [vizSettings, setVizSettings] = useState<VisualizerSettings>(() => {
     if (preview) return defaultVisualizerSettings;
     try {
-      const saved = JSON.parse(
-        localStorage.getItem('headspace.visualizerSettings') || 'null',
+      const saved = object(
+        decodeJson(
+          localStorage.getItem('headspace.visualizerSettings') || 'null',
+        ),
       );
       if (
-        saved &&
-        typeof saved.speed === 'number' &&
+        isFiniteNumber(saved.speed) &&
         saved.speed >= 0.25 &&
         saved.speed <= 2 &&
-        typeof saved.glow === 'number' &&
+        isFiniteNumber(saved.glow) &&
         saved.glow >= 0.4 &&
         saved.glow <= 2 &&
-        typeof saved.hue === 'number' &&
+        isFiniteNumber(saved.hue) &&
         saved.hue >= 0 &&
         saved.hue <= 1 &&
-        typeof saved.frozen === 'boolean'
+        isJsonBoolean(saved.frozen)
       )
         return {
           speed: saved.speed,
@@ -302,6 +326,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [libraryError, setLibraryError] = useState('');
   const [connected, setConnected] = useState(false);
   const [profile, setProfile] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
@@ -337,8 +362,10 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const request = useRef(0);
   const locked = useRef(false);
   const report = useCallback(
-    (e: unknown) =>
-      setError(e instanceof Error ? e.message : 'Spotify did not respond.'),
+    (cause: unknown) =>
+      setError(
+        cause instanceof Error ? cause.message : 'Spotify did not respond.',
+      ),
     [],
   );
   const refresh = useCallback(async () => {
@@ -354,7 +381,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   }, [preview, report]);
   const loadProfile = useCallback(async () => {
     const p = object(await spotifyAPI('/me'));
-    setProfile(typeof p.display_name === 'string' ? p.display_name : 'Spotify');
+    setProfile(isJsonString(p.display_name) ? p.display_name : 'Spotify');
     setPlaylists(
       collections(
         object(await spotifyAPI('/me/playlists?limit=50')).items,
@@ -418,8 +445,8 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     if (preview) return () => window.removeEventListener('resize', resize);
     void initializeSession()
       .then(async (ok) => {
-        void import('./analytics').catch((error: unknown) => {
-          console.error('Could not initialize Hexclave analytics', error);
+        void import('./analytics').catch((cause: unknown) => {
+          console.error('Could not initialize Hexclave analytics', cause);
         });
         setConnected(ok);
         if (ok) {
@@ -428,14 +455,12 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         }
       })
       .catch(report);
-    // oxlint-disable-next-line react/react-compiler -- Read the embedded Spotify player when this subscription starts.
+    // oxlint-disable-next-line react/set-state-in-effect -- Read the embedded Spotify player when this subscription starts.
     void refresh();
     const timer = window.setInterval(() => {
       if (!document.hidden) void refresh();
     }, 1600);
-    const oauth = (event: Event) => {
-      if (!(event instanceof CustomEvent) || typeof event.detail !== 'string')
-        return;
+    const oauth = (event: WindowEventMap['headspace-oauth']) => {
       setAuthBusy(true);
       void completeSignIn(event.detail)
         .then(async (ok) => {
@@ -461,9 +486,8 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     };
   }, [preview, refresh, report, loadProfile]);
   useEffect(() => {
-    const onError = (event: Event) => {
-      if (event instanceof CustomEvent && typeof event.detail === 'string')
-        setError(event.detail);
+    const onError = (event: WindowEventMap['headspace-player-error']) => {
+      setError(event.detail);
     };
     window.addEventListener('headspace-player-error', onError);
     return () => window.removeEventListener('headspace-player-error', onError);
@@ -473,7 +497,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     const timer = setTimeout(() => setStatus(''), 5000);
     return () => clearTimeout(timer);
   }, [status]);
-  async function runControl(action: () => Promise<unknown>) {
+  async function runControl(action: () => Promise<void>) {
     if (locked.current) return false;
     locked.current = true;
     setBusy(true);
@@ -491,7 +515,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       setBusy(false);
     }
   }
-  function control(method: string, args?: Record<string, unknown>) {
+  function control(method: string, args?: PlaybackCommandArgs) {
     if (preview) {
       return runControl(() => preview.command(method, args));
     }
@@ -509,7 +533,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     try {
       await connectSpotify();
       const url = window.headspaceNative ? await native('authURL') : '';
-      setAuthURL(typeof url === 'string' ? url : '');
+      setAuthURL(nativeText(url));
     } catch (e) {
       report(e);
     } finally {
@@ -526,6 +550,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     ) => {
       const id = ++request.current;
       setLoading(true);
+      setLibraryError('');
       setError('');
       if (!more) {
         setSongList([]);
@@ -600,10 +625,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                       : null;
         let songs = kind
           ? []
-          : tracks(
-              page.items,
-              typeof page.offset === 'number' ? page.offset : 0,
-            );
+          : tracks(page.items, isFiniteNumber(page.offset) ? page.offset : 0);
         if (collection?.kind === 'album' && selected === 'collection')
           songs = songs.map((t) => ({
             ...t,
@@ -631,7 +653,12 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         if (selected === 'liked')
           setSaved((old) => new Set([...old, ...songs.map((t) => t.uri)]));
       } catch (e) {
-        if (id === request.current) report(e);
+        if (id === request.current) {
+          setLibraryError(
+            e instanceof Error ? e.message : 'Could not load music.',
+          );
+          report(e);
+        }
       } finally {
         if (id === request.current) setLoading(false);
       }
@@ -639,7 +666,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     [report],
   );
   useEffect(() => {
-    // oxlint-disable-next-line react/react-compiler -- Fetch account data when the external OAuth session connects.
+    // oxlint-disable-next-line react/set-state-in-effect -- Fetch account data when the external OAuth session connects.
     if (connected) void libraryRequest('recent', '', 'track', null);
   }, [connected, libraryRequest]);
   function browse(selected: LibraryMode, collection: Collection | null = null) {
@@ -744,7 +771,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         list(object(await spotifyAPI('/me/player/devices')).devices).flatMap(
           (v) => {
             const d = object(v);
-            return typeof d.id === 'string' && typeof d.name === 'string'
+            return isJsonString(d.id) && isJsonString(d.name)
               ? [{ id: d.id, name: d.name, active: d.is_active === true }]
               : [];
           },
@@ -905,12 +932,31 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                 >
                   Reset
                 </button>
-                <span
-                  className="eq-mode"
-                  title="These sliders adjust the spectrum display. Spotify audio is unchanged."
+                <select
+                  className="eq-preset"
+                  aria-label="Visualizer preset"
+                  title="Visualizer presets adjust the spectrum display. Spotify audio is unchanged."
+                  value={
+                    BAND_PRESETS.find((preset) =>
+                      preset.bands.every((value, i) => value === bands[i]),
+                    )?.name ?? 'Custom'
+                  }
+                  onChange={(event) => {
+                    const preset = BAND_PRESETS.find(
+                      (preset) => preset.name === event.target.value,
+                    );
+                    if (preset) setBands([...preset.bands]);
+                  }}
                 >
-                  visualizer
-                </span>
+                  <option value="Custom" disabled>
+                    Custom
+                  </option>
+                  {BAND_PRESETS.map((preset) => (
+                    <option key={preset.name} value={preset.name}>
+                      {preset.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </>
           )}
@@ -997,18 +1043,36 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   ) : connected ? (
                     loading ? (
                       <p>Loading...</p>
+                    ) : libraryError ? (
+                      <div className="mini-connect">
+                        <p role="alert">{libraryError}</p>
+                        <button
+                          onClick={() =>
+                            void libraryRequest(
+                              mode,
+                              query,
+                              searchKind,
+                              activeCollection,
+                            )
+                          }
+                        >
+                          Retry
+                        </button>
+                        {activeCollection?.kind === 'playlist' && (
+                          <button
+                            disabled={busy}
+                            onClick={() => playCollection(activeCollection)}
+                          >
+                            Play playlist
+                          </button>
+                        )}
+                      </div>
                     ) : songList.length ? (
-                      <TrackRows
-                        items={songList}
-                        compact
-                        currentURI={playback.uri}
-                        playing={playback.playing}
+                      <PlaylistTracks
+                        tracks={songList}
+                        playback={playback}
                         busy={busy}
-                        saved={saved}
-                        playSong={playSong}
-                        like={like}
-                        addQueue={addQueue}
-                        setAdding={setAdding}
+                        play={playSong}
                       />
                     ) : (
                       <button
@@ -1072,6 +1136,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
               bands={bands}
               settings={vizSettings}
             />
+            {playback.uri && playback.name && (
+              <SongCard key={playback.uri} playback={playback} />
+            )}
           </div>
           <Bitmap name="head" className="head-bitmap" />
           <button
@@ -1144,24 +1211,28 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
             onClick={() => void native('close').catch(report)}
           />
           <SkinButton
-            label="Toggle equalizer panel"
-            icon="equalizer"
+            label={playback.shuffle ? 'Turn shuffle off' : 'Turn shuffle on'}
+            icon="shuffle"
+            pressed={playback.shuffle}
+            disabled={busy}
             variant="utility"
             width={20}
             height={19}
             x={15}
             y={214}
-            onClick={() => setLeftOpen(!leftOpen)}
+            onClick={() => void control('shuffle')}
           />
           <SkinButton
-            label="Toggle playlist"
-            icon="playlist"
+            label={`Repeat: ${playback.repeat === 'track' ? 'one' : playback.repeat === 'context' ? 'all' : 'off'}`}
+            icon={playback.repeat === 'track' ? 'repeatOne' : 'repeat'}
+            pressed={playback.repeat !== 'off'}
+            disabled={busy}
             variant="utility"
             width={19}
             height={20}
             x={204}
             y={214}
-            onClick={() => setRightOpen(!rightOpen)}
+            onClick={() => void control('repeat')}
           />
           <input
             className="seek-slider"

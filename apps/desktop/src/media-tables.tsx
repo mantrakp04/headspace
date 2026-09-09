@@ -45,10 +45,37 @@ export function TrackRows({
               disabled={!t.playable || busy}
               title={`${t.name} • ${t.artist}`}
             >
-              <span className="song-icon">
-                {row.index === currentIndex && playing ? '►' : '♫'}
-              </span>
-              {t.name}
+              {compact ? (
+                <>
+                  <span className="song-icon">
+                    {row.index === currentIndex && playing ? '►' : '♫'}
+                  </span>
+                  {t.name}
+                </>
+              ) : (
+                <>
+                  {t.image ? (
+                    <img
+                      src={t.image}
+                      alt=""
+                      width={34}
+                      height={34}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="track-art-placeholder" aria-hidden="true">
+                      ♫
+                    </span>
+                  )}
+                  <span className="track-copy">
+                    <strong>
+                      {row.index === currentIndex && playing ? '► ' : ''}
+                      {t.name}
+                    </strong>
+                    <small>{t.artist}</small>
+                  </span>
+                </>
+              )}
             </button>
           );
         },
@@ -61,14 +88,6 @@ export function TrackRows({
       },
       ...(!compact
         ? [
-            {
-              id: 'artist',
-              accessorKey: 'artist',
-              header: 'Artist',
-              cell: ({ row }) => (
-                <span title={row.original.artist}>{row.original.artist}</span>
-              ),
-            } satisfies MediaColumn<Track>,
             {
               id: 'actions',
               header: 'Actions',
@@ -133,9 +152,9 @@ export function TrackRows({
       items={items}
       columns={columns}
       currentIndex={currentIndex}
-      rowHeight={compact ? 11 : 29}
+      rowHeight={compact ? 11 : 46}
       className={compact ? 'compact-tracks' : 'full-tracks'}
-      grid={compact ? 'minmax(0,1fr) 24px' : 'minmax(0,1fr) 38px 120px 106px'}
+      grid={compact ? 'minmax(0,1fr) 24px' : 'minmax(0,1fr) 38px 106px'}
       label={compact ? 'Playlist tracks' : 'Music tracks'}
     />
   );

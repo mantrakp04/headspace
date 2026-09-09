@@ -49,3 +49,12 @@
 .skin-button.control-window:hover .relief-face {
   fill: #baffdb;
 }
+
+.skin-button.control-utility[aria-pressed='true'] .relief-face {
+  stroke: #fff8b0;
+  filter: drop-shadow(0 0 1px #efff86);
+}
+.skin-button.control-transport,
+.skin-button.control-gold {
+  border-radius: 50%;
+}

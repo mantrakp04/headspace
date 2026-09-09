@@ -26,7 +26,19 @@
     "**/dist/**",
     "**/.output/**",
     "**/.vercel/**",
-    "**/routeTree.gen.ts"
+    "**/routeTree.gen.ts",
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
+    "tools/oxlint/anti-slop/**"
   ],
   "rules": {
     "no-array-constructor": "error",
@@ -38,7 +50,6 @@
     "react/display-name": "error",
     "react/jsx-no-comment-textnodes": "error",
     "react/no-unescaped-entities": "error",
-    "react/react-compiler": "error",
     "react/require-render-return": "error",
     "react/rules-of-hooks": "error",
     "typescript/ban-ts-comment": "error",
@@ -48,6 +59,27 @@
     "typescript/no-namespace": "error",
     "typescript/no-require-imports": "error",
     "typescript/no-unnecessary-type-constraint": "error",
-    "typescript/no-unsafe-function-type": "error"
-  }
+    "typescript/no-unsafe-function-type": "error",
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "error",
+    "anti-slop/no-shape-in-symbol-names": "error",
+    "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "error",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error"
+  },
+  "jsPlugins": [
+    {
+      "name": "anti-slop",
+      "specifier": "./tools/oxlint/anti-slop/index.ts"
+    }
+  ]
 }

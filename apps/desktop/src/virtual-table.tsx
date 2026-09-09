@@ -30,6 +30,7 @@ export function VirtualTable<T extends { uri: string }>({
     getRowId: (item, index) => `${item.uri}:${index}`,
   });
   const rows = table.getRowModel().rows;
+  // oxlint-disable-next-line react/incompatible-library -- TanStack Virtual owns the scroll measurements; React Compiler cannot memoize that subscription.
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scroll.current,

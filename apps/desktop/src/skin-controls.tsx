@@ -3,6 +3,12 @@ import './control-detail.css';
 import { EarControlFace } from './ear-control';
 
 const paths = {
+  shuffle:
+    'M3 6h3c5 0 7 12 12 12h3 M17 15l4 3-4 3 M3 18h3c2 0 3-2 4-4 M14 8c1-1 2-2 4-2h3 M17 3l4 3-4 3',
+  repeat:
+    'M4 10V8a3 3 0 0 1 3-3h13 M17 2l3 3-3 3 M20 14v2a3 3 0 0 1-3 3H4 M7 16l-3 3 3 3',
+  repeatOne:
+    'M4 10V8a3 3 0 0 1 3-3h13 M17 2l3 3-3 3 M20 14v2a3 3 0 0 1-3 3H4 M7 16l-3 3 3 3 M10 10l2-1v6 M10 15h4',
   previous: 'M4 5h2v14H4z M13 5v14l-7-7z M21 5v14l-8-7z',
   next: 'M3 5l8 7-8 7z M11 5l7 7-7 7z M18 5h2v14h-2z',
   play: 'M8 4.5L19 12 8 19.5z',
@@ -74,15 +80,8 @@ function Jewel({ icon, gold }: { icon: SkinIcon; gold: boolean }) {
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <path
-        d="M7 .7h10l6.3 6.1v10.4L17 23.3H7L.7 17.2V6.8z"
-        fill={`url(#${rim})`}
-      />
-      <path
-        d="M6.4 2.1Q12-.9 18 2.8L22 7v9.8L17.4 22H7L2 17V7z"
-        fill="#bddd85"
-        opacity=".55"
-      />
+      <circle cx="12" cy="12" r="11.7" fill={`url(#${rim})`} />
+      <circle cx="12" cy="12" r="10.8" fill="#bddd85" opacity=".55" />
       <g className="control-face">
         <circle cx="12" cy="12" r="10.05" fill={gold ? '#574412' : '#412344'} />
         <circle cx="12.15" cy="12.35" r="9.3" fill={`url(#${face})`} />
@@ -272,6 +271,7 @@ export function SkinButton({
   height = 20,
   onClick,
   disabled,
+  pressed,
   variant = 'utility',
 }: {
   label: string;
@@ -282,6 +282,7 @@ export function SkinButton({
   height?: number;
   onClick: () => void;
   disabled?: boolean;
+  pressed?: boolean;
   variant?: 'transport' | 'gold' | 'utility' | 'window' | 'ear';
 }) {
   const style: CSSProperties = { left: x, top: y, width, height };
@@ -290,6 +291,7 @@ export function SkinButton({
       type="button"
       className={`skin-button control-${variant}`}
       aria-label={label}
+      aria-pressed={pressed}
       title={label}
       disabled={disabled}
       style={style}

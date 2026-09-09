@@ -96,8 +96,7 @@ void test('native connection opens Hexclave with the loopback callback and strea
   window.headspaceNative = {
     async request(method, args) {
       assert.equal(method, 'openAuth');
-      if (typeof args?.url !== 'string')
-        throw new Error('Missing authorization URL');
+      if (args?.url === undefined) throw new Error('Missing authorization URL');
       destination = args.url;
       return true;
     },
@@ -120,7 +119,7 @@ void test('native callback exchanges the code without exposing it to page histor
   let authorization = '';
   window.headspaceNative = {
     async request(method, args) {
-      if (method === 'openAuth' && typeof args?.url === 'string')
+      if (method === 'openAuth' && args?.url !== undefined)
         authorization = args.url;
       return true;
     },
@@ -138,14 +137,20 @@ void test('native callback exchanges the code without exposing it to page histor
     const request = new Request(input);
     return Response.json(
       request.url.endsWith('/auth/oauth/token')
-        ? { access_token: 'identity-token', refresh_token: 'hex-refresh', expires_in: 3600 }
+        ? {
+            access_token: 'identity-token',
+            refresh_token: 'hex-refresh',
+            expires_in: 3600,
+          }
         : { access_token: 'spotify-playback-token' },
     );
   });
   await connectSpotify();
   const state = new URL(authorization).searchParams.get('state');
   assert.equal(
-    await completeSignIn(`http://127.0.0.1:4382/callback?code=private-code&state=${state}`),
+    await completeSignIn(
+      `http://127.0.0.1:4382/callback?code=private-code&state=${state}`,
+    ),
     true,
   );
   const saved = sessionStorage.getItem(sessionKey) ?? '';

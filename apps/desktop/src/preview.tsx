@@ -1,10 +1,10 @@
 import { formatTime, type Track } from '@headspace/spotify';
-import type { LocalPlayback } from './bridge';
+import type { LocalPlayback, PlaybackCommandArgs } from './bridge';
 
 export type PreviewPlayer = {
   tracks: readonly Track[];
   readPlayback: () => LocalPlayback;
-  command: (method: string, args?: Record<string, unknown>) => Promise<void>;
+  command: (method: string, args?: PlaybackCommandArgs) => Promise<void>;
   playTrack: (uri: string) => Promise<void>;
 };
 
@@ -20,18 +20,45 @@ export function PreviewQueue({
   play: (track: Track) => void;
 }) {
   return (
+    <PlaylistTracks
+      tracks={player.tracks}
+      playback={playback}
+      busy={busy}
+      play={play}
+      preview
+    />
+  );
+}
+
+export function PlaylistTracks({
+  tracks,
+  playback,
+  busy,
+  play,
+  preview = false,
+}: {
+  tracks: readonly Track[];
+  playback: LocalPlayback;
+  busy: boolean;
+  play: (track: Track) => void;
+  preview?: boolean;
+}) {
+  const currentIndex = tracks.findIndex((track) => track.uri === playback.uri);
+  return (
     <div className="preview-queue">
-      <p className="preview-caption">Spotify · Song previews</p>
-      {player.tracks.map((track) => (
+      <p className="preview-caption">
+        {preview ? 'Spotify · Song previews' : 'Spotify'}
+      </p>
+      {tracks.map((track, index) => (
         <div
-          key={track.uri}
-          className={`preview-track ${playback.uri === track.uri ? 'selected' : ''}`}
+          key={`${track.uri}-${index}`}
+          className={`preview-track ${index === currentIndex ? 'selected' : ''}`}
         >
           <button
             className="preview-track-play"
-            aria-label={`Play preview of ${track.name}`}
-            aria-pressed={playback.uri === track.uri && playback.playing}
-            disabled={busy}
+            aria-label={`${preview ? 'Play preview of' : 'Play'} ${track.name}`}
+            aria-pressed={index === currentIndex && playback.playing}
+            disabled={busy || (!preview && !track.playable)}
             onClick={() => play(track)}
           >
             <img src={track.image} alt="" width={24} height={24} />
@@ -40,7 +67,7 @@ export function PreviewQueue({
               <small title={track.artist}>{track.artist}</small>
             </span>
             <span className="preview-track-time">
-              {playback.uri === track.uri && playback.playing
+              {index === currentIndex && playback.playing
                 ? '▶'
                 : formatTime(track.duration)}
             </span>

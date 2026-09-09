@@ -22,11 +22,11 @@ export const landingThemeOptions: ReadonlyArray<{
 ];
 
 export function isLandingTheme(value: string): value is LandingTheme {
-  return (landingThemes as readonly string[]).includes(value);
+  return landingThemes.some((theme) => theme === value);
 }
 
 export function readLandingTheme(): LandingTheme {
-  if (typeof window === 'undefined') return 'pearl';
+  if (globalThis.window === undefined) return 'pearl';
   const saved = window.localStorage.getItem(landingThemeKey);
   return saved && isLandingTheme(saved) ? saved : 'pearl';
 }

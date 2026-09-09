@@ -13,6 +13,6 @@ export const analytics = new HexclaveClientApp({
   analytics: { replays: { enabled: false } },
 });
 
-void analytics.getUser({ or: 'anonymous' }).catch((error: unknown) => {
-  console.error('Could not initialize the analytics session', error);
+void analytics.getUser({ or: 'anonymous' }).catch((cause: unknown) => {
+  console.error('Could not initialize the analytics session', cause);
 });

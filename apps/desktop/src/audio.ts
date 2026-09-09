@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
+import { isJsonObject, isJsonString, type JsonValue } from '@headspace/spotify';
 import { native } from './bridge.ts';
 import {
   decayAudioFrame,
@@ -25,15 +26,15 @@ export function readAudioFrame(now = performance.now()) {
   return decayAudioFrame(latest, now - receivedAt);
 }
 
-function parseStatus(value: unknown): CaptureStatus | null {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    !('state' in value) ||
-    !('message' in value) ||
-    typeof value.message !== 'string'
-  )
-    return null;
+declare global {
+  interface WindowEventMap {
+    'headspace-audio': CustomEvent<JsonValue>;
+    'headspace-audio-status': CustomEvent<JsonValue>;
+  }
+}
+
+function parseStatus(value: JsonValue): CaptureStatus | null {
+  if (!isJsonObject(value) || !isJsonString(value.message)) return null;
   const { state, message } = value;
   if (
     state === 'idle' ||
@@ -71,16 +72,14 @@ export function useAudioCapture(enabled: boolean, attempt: number) {
     let disposed = false;
     latest = silentAudioFrame;
     receivedAt = -Infinity;
-    function audio(event: Event) {
-      if (!(event instanceof CustomEvent)) return;
+    function audio(event: WindowEventMap['headspace-audio']) {
       const frame = parseAudioFrame(event.detail);
       if (frame) {
         latest = frame;
         receivedAt = performance.now();
       }
     }
-    function changed(event: Event) {
-      if (!(event instanceof CustomEvent)) return;
+    function changed(event: WindowEventMap['headspace-audio-status']) {
       const next = parseStatus(event.detail);
       if (!next) return;
       publishStatus(next);
@@ -103,13 +102,13 @@ export function useAudioCapture(enabled: boolean, attempt: number) {
     window.addEventListener('headspace-audio', audio);
     window.addEventListener('headspace-audio-status', changed);
     publishStatus({ state: 'starting', message: 'Connecting to Mac audio…' });
-    void native('startAudioCapture').catch((error: unknown) => {
+    void native('startAudioCapture').catch((cause: unknown) => {
       if (!disposed)
         publishStatus({
           state: 'unavailable',
           message:
-            error instanceof Error
-              ? error.message
+            cause instanceof Error
+              ? cause.message
               : 'Audio capture could not start.',
         });
     });

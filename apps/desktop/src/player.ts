@@ -1,6 +1,7 @@
 import {
   accessToken,
   hasSession,
+  isFiniteNumber,
   list,
   object,
   string,
@@ -12,7 +13,12 @@ import {
   sdkRepeat,
   type PlaybackSelection,
 } from '@headspace/spotify/selection';
-import { persistSession, spotifyAPI, type LocalPlayback } from './bridge.ts';
+import {
+  persistSession,
+  spotifyAPI,
+  type LocalPlayback,
+  type PlaybackCommandArgs,
+} from './bridge.ts';
 
 let player: WebPlayer | null = null;
 let connecting: Promise<WebPlayer> | null = null;
@@ -165,7 +171,7 @@ export async function readPlayback(): Promise<LocalPlayback> {
     running: Boolean(deviceId),
     playing: state.paused === false,
     volume: instance ? Math.round((await instance.getVolume()) * 100) : 50,
-    position: typeof state.position === 'number' ? state.position : 0,
+    position: isFiniteNumber(state.position) ? state.position : 0,
     shuffle: state.shuffle === true,
     repeat: sdkRepeat(state.repeat_mode),
     name: string(track.name),
@@ -174,7 +180,7 @@ export async function readPlayback(): Promise<LocalPlayback> {
       .map((a) => string(object(a).name))
       .join(', '),
     album: string(object(track.album).name),
-    duration: typeof state.duration === 'number' ? state.duration : 0,
+    duration: isFiniteNumber(state.duration) ? state.duration : 0,
     image: string(object(list(object(track.album).images)[0]).url),
   };
 }
@@ -195,8 +201,8 @@ export async function playSelection(selection: PlaybackSelection) {
 
 export async function playbackCommand(
   method: string,
-  args: Record<string, unknown> = {},
-) {
+  args: PlaybackCommandArgs = {},
+): Promise<void> {
   if (method === 'reconnect') disconnectPlayer();
   const instance = await startPlayer();
   await instance.activateElement();
@@ -206,7 +212,7 @@ export async function playbackCommand(
       return;
     case 'enqueue': {
       if (
-        typeof args.uri !== 'string' ||
+        args.uri === undefined ||
         !/^spotify:(track|episode):[a-zA-Z0-9]+$/.test(args.uri)
       )
         throw new Error('Invalid track.');
@@ -235,7 +241,7 @@ export async function playbackCommand(
       return instance.nextTrack();
     case 'volume':
     case 'seek': {
-      if (typeof args.value !== 'number' || !Number.isFinite(args.value))
+      if (args.value === undefined || !Number.isFinite(args.value))
         throw new Error('Invalid playback value.');
       if (method === 'seek')
         return instance.seek(Math.max(0, args.value) * 1000);
@@ -246,23 +252,25 @@ export async function playbackCommand(
     }
     case 'shuffle': {
       const state = object(await instance.getCurrentState());
-      return spotifyAPI(
+      await spotifyAPI(
         '/me/player/shuffle' +
           device +
           '&state=' +
           String(state.shuffle !== true),
         'PUT',
       );
+      return;
     }
     case 'repeat': {
       const state = object(await instance.getCurrentState());
-      return spotifyAPI(
+      await spotifyAPI(
         '/me/player/repeat' +
           device +
           '&state=' +
           nextRepeat(sdkRepeat(state.repeat_mode)),
         'PUT',
       );
+      return;
     }
     default:
       throw new Error('Unknown playback command.');

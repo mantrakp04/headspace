@@ -1,3 +1,5 @@
+import { decodeResponseJson, object, string, type JsonValue } from './json.ts';
+
 export type HexclaveConnection = {
   projectId: string;
   publishableClientKey: string;
@@ -6,23 +8,13 @@ export type HexclaveConnection = {
 export const hexclaveAPI = 'https://api.hexclave.com/api/v1';
 
 export function parseHexclaveConnection(
-  value: unknown,
+  value: JsonValue | undefined,
 ): HexclaveConnection | null {
-  if (
-    typeof value !== 'object' ||
-    value === null ||
-    !('projectId' in value) ||
-    typeof value.projectId !== 'string' ||
-    !/^[a-f0-9-]{36}$/i.test(value.projectId) ||
-    !('publishableClientKey' in value) ||
-    typeof value.publishableClientKey !== 'string' ||
-    !value.publishableClientKey
-  )
-    return null;
-  return {
-    projectId: value.projectId,
-    publishableClientKey: value.publishableClientKey,
-  };
+  const record = object(value);
+  const projectId = string(record.projectId);
+  const publishableClientKey = string(record.publishableClientKey);
+  if (!/^[a-f0-9-]{36}$/i.test(projectId) || !publishableClientKey) return null;
+  return { projectId, publishableClientKey };
 }
 
 export async function connectedSpotifyToken(
@@ -44,18 +36,11 @@ export async function connectedSpotifyToken(
       body: JSON.stringify({ scope }),
     },
   );
-  const value: unknown = await response.json();
-  if (
-    !response.ok ||
-    typeof value !== 'object' ||
-    value === null ||
-    !('access_token' in value) ||
-    typeof value.access_token !== 'string' ||
-    !value.access_token
-  ) {
+  const token = string(object(await decodeResponseJson(response)).access_token);
+  if (!response.ok || !token) {
     throw new Error(
       'Hexclave could not access your Spotify account. Connect Spotify again to grant playback and library access.',
     );
   }
-  return value.access_token;
+  return token;
 }
