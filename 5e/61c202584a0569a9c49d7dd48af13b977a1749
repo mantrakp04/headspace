@@ -1,0 +1,250 @@
+packages/spotify/src/spotify.test.ts
+  s_8de9f7a751b4fa::t_968a6045c322d3 536
+  s_3eecd4938e0465::t_29c2359fa87a34 28,34-35
+  s_3eecd4938e0465::t_87846a814592fb 4
+  s_3eecd4938e0465::t_6ef105015ed120 276-278
+  s_3eecd4938e0465::t_6dd31bd2f80007 50
+  s_8de9f7a751b4fa::t_c4990b91a2d16c 530-535,537-561
+  s_3eecd4938e0465::t_5d5de0ce3f4153 237-238
+  s_3eecd4938e0465::t_215f6dcf5d06d4 53-67
+apps/desktop/src/bridge.ts
+  s_3eecd4938e0465::t_e0e18df7349585 77-78
+  s_3eecd4938e0465::t_ca915c31809eb1 62-64
+  s_3eecd4938e0465::t_9ea0f513cf8d01 8,35-43,47,51-55,57,104-108
+apps/desktop/src/gpu-check.ts
+  s_3eecd4938e0465::t_f40319738baf80 43-44
+apps/desktop/src/virtual-table.tsx
+  s_3eecd4938e0465::t_a89bbba3c9198b 33
+tools/oxlint/anti-slop/rules/no-object-parameters.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-126
+.oxlintrc.json
+  s_3a32edcc24f5e3::t_7578bf8e754500 29-41,62-84
+apps/desktop/src/preview.tsx
+  s_2cb75873d304a9::t_79ac1ba7d311ed 23-46,49-52,54-55,59-61,70
+  s_3eecd4938e0465::t_76d42405848292 2,7
+  s_2cb75873d304a9::t_1f3d16483bcae9 22
+apps/desktop/src/control-detail.css
+  s_3f1facffb19f6b::t_c11145bb47f91c 52-60
+tools/oxlint/anti-slop/rules/no-reflect-apply.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-28
+tools/oxlint/anti-slop/shared/reflect-method.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-35
+packages/spotify/src/hexclave.ts
+  s_3eecd4938e0465::t_ceba2047b175a4 2,11,13-17,39-40,45
+  s_3eecd4938e0465::t_cf99e6b01a5a51 1
+apps/desktop/src/audio.ts
+  s_3eecd4938e0465::t_a2f3dc60ee102d 105,110-111
+  s_3eecd4938e0465::t_cf99e6b01a5a51 2
+  s_3eecd4938e0465::t_2dd9fc6ae46c5a 29-37
+  s_3eecd4938e0465::t_b2fc3c57c8e19b 82
+  s_3eecd4938e0465::t_bc155d132351e9 75
+apps/desktop/src/slider-detail.css
+  s_3f1facffb19f6b::t_962e225caf3234 21
+tools/oxlint/anti-slop/rules/no-widen-then-assert.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-366
+tools/oxlint/anti-slop/shared/lexical-type-parameters.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-61
+tools/oxlint/anti-slop/rules/no-unknown-parameters.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-83
+apps/desktop/src/headspace.tsx
+  s_2cb75873d304a9::t_79ac1ba7d311ed 56,1071-1073,1075
+  s_3eecd4938e0465::t_9f79052a4c1d26 448-449
+  s_3eecd4938e0465::t_8269646059c7bd 458,463
+  s_3eecd4938e0465::t_d5e476113f615c 365
+  s_3eecd4938e0465::t_33038251eb9d92 35
+  s_3f1facffb19f6b::t_c11145bb47f91c 235-241,1214-1217,1226-1229
+  s_3eecd4938e0465::t_ae97d677b0b97b 384
+  s_8de9f7a751b4fa::t_c4990b91a2d16c 329,553,656-661,1046-1069
+  s_3eecd4938e0465::t_5ddbf73f410340 489-490
+  s_3f1facffb19f6b::t_9360739821321c 1,1139-1141
+  s_3eecd4938e0465::t_fee1ecfd01f03d 774
+  s_3eecd4938e0465::t_c30bc93344adbe 518
+  s_3eecd4938e0465::t_95cce9e2c46207 669
+  s_2cb75873d304a9::t_6e4d08c9295a5e 229-234,242-244,935-949,951-959
+  s_3eecd4938e0465::t_1b8ba9a492be3c 500
+  s_3eecd4938e0465::t_cf99e6b01a5a51 259-261,366-368,628
+  s_3eecd4938e0465::t_1d240290043750 32
+  s_3f1facffb19f6b::t_0ac59dd8ee458f 1223,1235
+  s_3eecd4938e0465::t_7eba761c52efde 258,264,267,270,273
+  s_3eecd4938e0465::t_fdb4254b231184 12,15-17
+  s_3eecd4938e0465::t_67c6834e777434 536
+apps/desktop/src/player.ts
+  s_3eecd4938e0465::t_23bee2eea22f85 174
+  s_3eecd4938e0465::t_819dd872a0f0a7 205
+  s_3eecd4938e0465::t_d7400ed75af553 204,215
+  s_3eecd4938e0465::t_88daeb02b0b3a9 183
+  s_3eecd4938e0465::t_f36a6c42c8e1d0 4
+  s_3eecd4938e0465::t_f30df1b8eb9fa7 16-21
+  s_3eecd4938e0465::t_8e5cfcadda3189 244
+  s_3eecd4938e0465::t_5f58af6485541f 255,262,266,273
+apps/desktop/src/player.test.ts
+  s_3eecd4938e0465::t_ab55c15abc4e87 3
+  s_3eecd4938e0465::t_1681c6bdb22d69 76
+  s_3eecd4938e0465::t_8b54b8e5c9d680 119
+  s_3eecd4938e0465::t_9565895ff5edce 123-133
+  s_3eecd4938e0465::t_244e2512283cbb 29
+  s_3eecd4938e0465::t_e08b07ae668164 23
+apps/desktop/src/analytics.ts
+  s_3eecd4938e0465::t_96f7b805275b39 16-17
+tools/oxlint/anti-slop/rules/no-unknown-type-aliases.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-70
+apps/desktop/release.json
+  s_6fd40a280f42ce::t_ecb2727926c775 2-3
+apps/site/src/routes/__root.tsx
+  s_3eecd4938e0465::t_6d5297dd392d0c 32-33
+apps/desktop/src/skin.css
+  s_3f1facffb19f6b::t_f2e390105a88ee 263,265
+  s_3f1facffb19f6b::t_231c4f6895ad3c 892
+  s_3f1facffb19f6b::t_9360739821321c 1085-1095,1098-1145,1147-1182
+  s_3f1facffb19f6b::t_8f97685f78bd90 244-245,250,252-262,264,266-275
+  s_3f1facffb19f6b::t_f4573eda76479f 1096-1097
+  s_3f1facffb19f6b::t_81ceaaef737cac 1146
+  s_3f1facffb19f6b::t_8e4293a5b02180 222,237,320,470-475,479
+  s_3f1facffb19f6b::t_89d3d52f491605 480-484
+  s_3f1facffb19f6b::t_fa42aaec304de5 1183-1217
+  s_3f1facffb19f6b::t_0b28e96efe3d42 243,246-249,251,276
+apps/desktop/src/song-card.tsx
+  s_3f1facffb19f6b::t_9360739821321c 1-6,8-22,24-25
+  s_3f1facffb19f6b::t_81ceaaef737cac 7,23
+turbo.json
+  s_3a32edcc24f5e3::t_7578bf8e754500 44-45
+tools/oxlint/anti-slop/rules/no-unknown-returns.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-115
+apps/desktop/src/visualizer-shader.ts
+  s_3f1facffb19f6b::t_8ca42a4ef8dc61 7,45-58,61-84,86-98,101-107,109-117,119-123
+apps/desktop/src/media-tables.tsx
+  s_3f1facffb19f6b::t_fa42aaec304de5 48-78,155,157
+packages/spotify/src/spotify.ts
+  s_3eecd4938e0465::t_e52325a8776a7d 297
+  s_8de9f7a751b4fa::t_c4990b91a2d16c 421-426,435-437,439-450
+  s_3eecd4938e0465::t_62784ada2a00a1 81-82,84,88,92
+  s_3eecd4938e0465::t_a00a7ca4ad318e 336
+  s_3eecd4938e0465::t_360fcfec06ceec 183,186-188
+  s_3eecd4938e0465::t_adc91c32d59262 138,145,149
+  s_3eecd4938e0465::t_cf99e6b01a5a51 322-324
+  s_3eecd4938e0465::t_e6325abe7c46f9 7-32
+  s_3eecd4938e0465::t_09f83d9663f354 116
+  s_3eecd4938e0465::t_3fa5df92df013d 172
+  s_3eecd4938e0465::t_aac8410ddbdb1e 399,401,410-416,428
+  s_3eecd4938e0465::t_ae7afe0bfffc7e 455-456
+  s_3eecd4938e0465::t_84d11fad1502d4 164
+apps/site/src/landing-themes.ts
+  s_3eecd4938e0465::t_a8fa4d48168d99 25,29
+apps/desktop/release-notes/1.0.4.md
+  s_6fd40a280f42ce::t_21e922529098ec 1-6
+README.md
+  s_6fd40a280f42ce::t_a1d666f7c15bb7 78
+apps/desktop/src/visualizer.tsx
+  s_3eecd4938e0465::t_4c97225e19ba74 435
+  s_3eecd4938e0465::t_3bdf8144b774e4 333,344-358
+  s_3f1facffb19f6b::t_401fcc8e05e8c3 185-205,207,210,214-223,225-247,250-258,262-297,300-305,309-321,324,326-329,396-399,534-537
+  s_3eecd4938e0465::t_9945efb1ee940a 571-572
+  s_3f1facffb19f6b::t_5851cc48aec95b 359
+apps/site/player/preview-player.ts
+  s_3eecd4938e0465::t_eaced024c3993f 1-4
+  s_3eecd4938e0465::t_3ceb8d1bdec452 222,225
+  s_3eecd4938e0465::t_b1eae82908370e 108
+  s_3eecd4938e0465::t_74973cdf674bd3 137
+tools/oxlint/anti-slop/rules/no-known-value-widening.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-247
+apps/site/src/analytics.ts
+  s_3eecd4938e0465::t_1b66cb57e6bb24 12-13
+apps/desktop/src/bridge.test.ts
+  s_3eecd4938e0465::t_cf99e6b01a5a51 99,140-144,151-153
+  s_3eecd4938e0465::t_93dfa70edbdb18 122
+tools/oxlint/anti-slop/rules/no-unsafe-dictionary-type.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-134
+tools/oxlint/anti-slop/rules/no-conditional-empty-object-spread.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-49
+tools/oxlint/anti-slop/rules/no-runtime-typeof.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-67
+packages/spotify/src/json.ts
+  s_3eecd4938e0465::t_90ad7eae9cf9ec 25-28,38,42
+  s_3eecd4938e0465::t_cf99e6b01a5a51 32-34
+  s_3eecd4938e0465::t_b852fe4da195dc 1-24,29-31,35-37,39-41,43-59
+tools/oxlint/anti-slop/rules/require-safety-comment-for-type-assertion.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-62
+tools/oxlint/anti-slop/shared/dictionary-types.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-502
+tools/oxlint/anti-slop/rules/no-chained-type-assertions.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-77
+tools/oxlint/anti-slop/index.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-41
+tools/oxlint/anti-slop/rules/no-reflect-get.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-28
+package.json
+  s_3a32edcc24f5e3::t_503ffb5db594c1 32,37
+packages/spotify/src/spotify-player.ts
+  s_3eecd4938e0465::t_aaea8c70f69bd7 1-2,4,16
+apps/desktop/src/audio-frame.ts
+  s_3eecd4938e0465::t_cf99e6b01a5a51 36
+  s_3eecd4938e0465::t_f4da9c34adfca8 1-6,28,41-42,45,47
+apps/desktop/src/skin-controls.tsx
+  s_3f1facffb19f6b::t_c11145bb47f91c 6-11,83-84,274,285,294
+tools/oxlint/anti-slop/rules/no-shape-in-symbol-names.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-39
+tools/oxlint/anti-slop/rules/no-module-mocking.ts
+  s_3a32edcc24f5e3::t_9bbbc59eca88e6 1-91
+packages/spotify/src/playback-selection.ts
+  s_3eecd4938e0465::t_42b08a780e56ca 5,7
+  s_3eecd4938e0465::t_35b90552b81945 82
+  s_3eecd4938e0465::t_b25ff9cc00d2e7 29,38-43,46-49
+package-lock.json
+  s_3a32edcc24f5e3::t_75805fa35fcdcb 14,19,1527-1529,1544-1546,1561-1563,1578-1580,1595-1597,1612-1614,1629-1631,1646-1648,1666-1668,1686-1688,1706-1708,1726-1728,1746-1748,1766-1768,1786-1788,1806-1808,1823-1825,1840-1842,1857-1859,1873-1885,4293-4295,4305,4308-4326
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5e61c202584a0569a9c49d7dd48af13b977a1749",
+  "prompts": {},
+  "sessions": {
+    "s_2cb75873d304a9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a08450-24e6-7df0-a4a0-53e9ac2b4f61",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_3a32edcc24f5e3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0844d-4873-7152-83ac-4ec7b6da03e0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_3eecd4938e0465": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5e441361-f92a-4255-86cf-dae815dfa38e",
+        "model": "grok-4.6"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_3f1facffb19f6b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a08453-30ac-7982-b3ab-5f1d465ff7fb",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_6fd40a280f42ce": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "70af70a6-33f1-49d6-b7cf-4309dd62befe",
+        "model": "grok-4.6"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    },
+    "s_8de9f7a751b4fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0845b-1e3c-7e30-ac3a-de48c459392a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "mantrakp04 <mantrakp@gmail.com>"
+    }
+  }
+}
