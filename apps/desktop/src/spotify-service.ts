@@ -33,6 +33,7 @@ export const spotifyService: MusicService = {
   requirement: 'Spotify Premium required.',
   podcasts: true,
   devices: true,
+  retriesPlayer: true,
   queueURL: 'https://open.spotify.com/queue',
   restore: initializeSession,
   async connect() {

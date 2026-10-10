@@ -33,6 +33,8 @@ export type MusicService = {
   requirement: string;
   podcasts: boolean;
   devices: boolean;
+  // Whether "Retry playback connection" can restart the player.
+  retriesPlayer: boolean;
   queueURL: string;
   restore(): Promise<boolean>;
   // Resolves connected=false when sign-in continues in the browser.

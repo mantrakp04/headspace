@@ -71,6 +71,7 @@ export function loadMusicKit(): Promise<void> {
   loading = new Promise<void>((resolve, reject) => {
     const fail = (message: string) => {
       window.clearTimeout(timer);
+      document.removeEventListener('musickitloaded', loaded);
       script.remove();
       loading = null;
       reject(new Error(message));
@@ -79,14 +80,13 @@ export function loadMusicKit(): Promise<void> {
       () => fail('Apple Music could not load. Check your connection.'),
       15000,
     );
-    document.addEventListener(
-      'musickitloaded',
-      () => {
-        window.clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
+    const loaded = () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('musickitloaded', loaded);
+      if (window.MusicKit) resolve();
+      else fail('Apple Music did not load. Try again.');
+    };
+    document.addEventListener('musickitloaded', loaded);
     const script = document.createElement('script');
     script.src = scriptURL;
     script.async = true;

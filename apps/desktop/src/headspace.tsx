@@ -366,8 +366,14 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       refreshing.current = false;
     }
   }, [preview, report, service]);
+  const currentService = useRef(service);
+  useEffect(() => {
+    currentService.current = service;
+  }, [service]);
   const loadProfile = useCallback(async () => {
     const p = await service.profile();
+    // Drop a profile that finished loading after a service switch.
+    if (currentService.current !== service) return;
     setProfile(p.name);
     setPlaylists(p.playlists);
   }, [service]);
@@ -436,7 +442,8 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         setConnected(ok);
         if (ok) {
           await loadProfile();
-          await service.start();
+          // The user may have switched services while the profile loaded.
+          if (active) await service.start();
         }
       })
       .catch(report);
@@ -539,6 +546,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     service.stop();
     storeProvider(next);
     request.current += 1;
+    setLoading(false);
     setProvider(next);
     setConnected(false);
     setProfile('');
@@ -1414,9 +1422,11 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                     {authBusy ? 'Connecting...' : `Connect ${service.name}`}
                   </button>
                 )}
-                <button onClick={() => void control('reconnect')}>
-                  Retry playback connection
-                </button>
+                {service.retriesPlayer && (
+                  <button onClick={() => void control('reconnect')}>
+                    Retry playback connection
+                  </button>
+                )}
                 <button disabled={authBusy} onClick={() => void signIn()}>
                   Reconnect {service.name}
                 </button>

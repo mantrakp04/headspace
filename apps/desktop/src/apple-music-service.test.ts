@@ -27,6 +27,7 @@ class MemoryStorage {
 }
 
 const calls: string[] = [];
+let stopFails = false;
 const queues: QueueOptions[] = [];
 const later: QueueOptions[] = [];
 const listeners = new Map<string, () => void>();
@@ -70,6 +71,7 @@ class MusicKitFixture {
   }
   async stop() {
     calls.push('stop');
+    if (stopFails) throw new Error('stop failed');
   }
   async skipToNextItem() {
     calls.push('next');
@@ -110,6 +112,7 @@ function song(id: string): JsonValue {
 
 beforeEach(() => {
   calls.length = 0;
+  stopFails = false;
   queues.length = 0;
   later.length = 0;
   requests.length = 0;
@@ -419,6 +422,11 @@ void test('songs are added to editable library playlists by type', async () => {
     '/v1/me/library/playlists/p.abc/tracks',
   );
   assert.deepEqual(requests[0].body, { data: [{ id: '7', type: 'songs' }] });
+  const [library] = songs([song('i.8')]);
+  await appleMusicService.addToPlaylist(playlist, library);
+  assert.deepEqual(requests[1].body, {
+    data: [{ id: 'i.8', type: 'library-songs' }],
+  });
   await assert.rejects(
     appleMusicService.addToPlaylist(
       { ...playlist, uri: 'apple-music:playlists:pl.x' },
@@ -426,4 +434,11 @@ void test('songs are added to editable library playlists by type', async () => {
     ),
     /your own playlists/,
   );
+});
+
+void test('signing out still happens when playback cannot stop', async () => {
+  await connect();
+  stopFails = true;
+  await appleMusicService.disconnect();
+  assert.equal(await appleMusicService.restore(), false);
 });

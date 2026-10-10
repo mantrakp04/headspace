@@ -174,6 +174,7 @@ export const appleMusicService: MusicService = {
   requirement: 'An Apple Music subscription is required.',
   podcasts: false,
   devices: false,
+  retriesPlayer: false,
   queueURL: '',
   async restore() {
     return (await configure()).isAuthorized;
@@ -183,8 +184,10 @@ export const appleMusicService: MusicService = {
     try {
       await instance.authorize();
     } catch {
+      // MusicKit reports every failure, including a closed window, as
+      // "Unauthorized", so there is no better detail to show.
       throw new Error(
-        'Apple Music sign-in was cancelled. You can try again whenever you like.',
+        'Apple Music sign-in did not finish. You can try again whenever you like.',
       );
     }
     return { connected: instance.isAuthorized, authURL: '' };
@@ -192,7 +195,11 @@ export const appleMusicService: MusicService = {
   async disconnect() {
     const instance = music;
     if (!instance) return;
-    await instance.stop();
+    try {
+      await instance.stop();
+    } catch {
+      /* Sign out even if playback cannot stop. */
+    }
     await instance.unauthorize();
     changed();
   },
@@ -298,8 +305,6 @@ export const appleMusicService: MusicService = {
   async command(method, args = {}) {
     const instance = await session();
     switch (method) {
-      case 'reconnect':
-        return;
       case 'enqueue': {
         const id = args.uri === undefined ? null : trackID(args.uri);
         if (!id) throw new Error('Invalid track.');

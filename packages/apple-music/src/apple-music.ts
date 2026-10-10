@@ -251,7 +251,8 @@ export async function resolveSongQueue(
   const all = [...items];
   const visited = new Set<string>();
   let page = next;
-  while (page && all.length - index - 1 < queueAfter) {
+  const following = () => all.slice(index + 1).filter((t) => t.playable).length;
+  while (page && following() < queueAfter) {
     if (visited.has(page))
       throw new Error('Apple Music returned a repeated page. Retry playback.');
     visited.add(page);

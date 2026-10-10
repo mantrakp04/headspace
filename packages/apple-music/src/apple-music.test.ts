@@ -300,6 +300,27 @@ void test('long song lists are trimmed around the selected song', async () => {
   assert.equal(queue.songs[queue.startWith], String(index));
 });
 
+void test('unavailable songs do not count toward the queue', async () => {
+  const items = songs([
+    song('0'),
+    ...Array.from({ length: queueAfter }, (_, i) =>
+      song('gone' + i, 'songs', false),
+    ),
+  ]);
+  const loaded: string[] = [];
+  const queue = await resolveSongQueue(
+    items,
+    0,
+    '/v1/me/library/songs?offset=251',
+    async (path) => {
+      loaded.push(path);
+      return { data: [song('1')] };
+    },
+  );
+  assert.deepEqual(loaded, ['/v1/me/library/songs?offset=251']);
+  assert.deepEqual(queue, { songs: ['0', '1'], startWith: 0 });
+});
+
 void test('repeated pages stop song queue loading', async () => {
   await assert.rejects(
     resolveSongQueue(
