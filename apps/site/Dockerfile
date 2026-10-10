@@ -4,6 +4,7 @@ COPY package.json package-lock.json ./
 COPY apps/site/package.json apps/site/package.json
 COPY apps/desktop/package.json apps/desktop/package.json
 COPY packages/spotify/package.json packages/spotify/package.json
+COPY packages/apple-music/package.json packages/apple-music/package.json
 RUN npm ci
 COPY . .
 ENV NITRO_PRESET=node-server

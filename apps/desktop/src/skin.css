@@ -648,6 +648,11 @@ a {
 .classic-tabs button {
   font-size: 10px;
 }
+.service-choice {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
 .classic-tabs button.active {
   background: linear-gradient(#ac75d3, #774394) !important;
   border-color: #c399df !important;

@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAppleMusicTokenRouteImport } from './routes/api/apple-music/token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAppleMusicTokenRoute = ApiAppleMusicTokenRouteImport.update({
+  id: '/api/apple-music/token',
+  path: '/api/apple-music/token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/apple-music/token': typeof ApiAppleMusicTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/apple-music/token': typeof ApiAppleMusicTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/apple-music/token': typeof ApiAppleMusicTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/apple-music/token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/apple-music/token'
+  id: '__root__' | '/' | '/api/apple-music/token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAppleMusicTokenRoute: typeof ApiAppleMusicTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/apple-music/token': {
+      id: '/api/apple-music/token'
+      path: '/api/apple-music/token'
+      fullPath: '/api/apple-music/token'
+      preLoaderRoute: typeof ApiAppleMusicTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAppleMusicTokenRoute: ApiAppleMusicTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

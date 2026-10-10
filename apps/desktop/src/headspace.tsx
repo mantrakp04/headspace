@@ -8,39 +8,30 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  collections,
   decodeJson,
-  disconnect,
   formatTime,
   isFiniteNumber,
   isJsonBoolean,
-  isJsonString,
-  list,
   object,
-  pagePath,
-  parseCollection,
-  parseTrack,
-  tracks,
   type Collection,
   type Track,
 } from '@headspace/spotify';
 import {
   completeSignIn,
-  connectSpotify,
-  initializeSession,
   native,
-  nativeText,
-  spotifyAPI,
   type LocalPlayback,
   type PlaybackCommandArgs,
 } from './bridge';
 import {
-  startPlayer,
-  disconnectPlayer,
-  readPlayback,
-  playbackCommand,
-  playSelection,
-} from './player';
+  storedProvider,
+  storeProvider,
+  type DeviceOption,
+  type LibraryMode,
+  type Provider,
+  type SearchKind,
+} from './music-service';
+import { spotifyService } from './spotify-service';
+import { appleMusicService } from './apple-music-service';
 import {
   Visualizer,
   visualizations,
@@ -63,15 +54,6 @@ import {
 
 type Asset = keyof typeof sizes;
 type Panel = 'library' | 'account' | 'devices' | 'queue' | 'about' | null;
-type LibraryMode =
-  | 'playlists'
-  | 'albums'
-  | 'artists'
-  | 'shows'
-  | 'liked'
-  | 'recent'
-  | 'search'
-  | 'collection';
 const emptyPlayback: LocalPlayback = {
   running: false,
   playing: false,
@@ -243,6 +225,11 @@ const BAND_PRESETS = [
 ];
 
 export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
+  const [provider, setProvider] = useState<Provider>(() =>
+    preview ? 'spotify' : storedProvider(),
+  );
+  const service =
+    provider === 'apple-music' ? appleMusicService : spotifyService;
   const [scale, setScale] = useState(() =>
     Math.min(window.innerWidth / 760, window.innerHeight / 394),
   );
@@ -333,9 +320,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [authURL, setAuthURL] = useState('');
   const [mode, setMode] = useState<LibraryMode>('recent');
   const [query, setQuery] = useState('');
-  const [searchKind, setSearchKind] = useState<
-    'track' | 'album' | 'artist' | 'playlist' | 'show'
-  >('track');
+  const [searchKind, setSearchKind] = useState<SearchKind>('track');
   const [activeCollection, setActiveCollection] = useState<Collection | null>(
     null,
   );
@@ -352,9 +337,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const [queueLoading, setQueueLoading] = useState(false);
   const [queueError, setQueueError] = useState('');
   const [queueRevision, setQueueRevision] = useState(0);
-  const [devices, setDevices] = useState<
-    { id: string; name: string; active: boolean }[]
-  >([]);
+  const [devices, setDevices] = useState<DeviceOption[]>([]);
   const [newPlaylist, setNewPlaylist] = useState('');
   const [adding, setAdding] = useState<Track | null>(null);
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -364,31 +347,30 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   const report = useCallback(
     (cause: unknown) =>
       setError(
-        cause instanceof Error ? cause.message : 'Spotify did not respond.',
+        cause instanceof Error
+          ? cause.message
+          : `${service.name} did not respond.`,
       ),
-    [],
+    [service],
   );
   const refresh = useCallback(async () => {
     if (refreshing.current) return;
     refreshing.current = true;
     try {
-      setPlayback(preview ? preview.readPlayback() : await readPlayback());
+      setPlayback(
+        preview ? preview.readPlayback() : await service.readPlayback(),
+      );
     } catch (e) {
       report(e);
     } finally {
       refreshing.current = false;
     }
-  }, [preview, report]);
+  }, [preview, report, service]);
   const loadProfile = useCallback(async () => {
-    const p = object(await spotifyAPI('/me'));
-    setProfile(isJsonString(p.display_name) ? p.display_name : 'Spotify');
-    setPlaylists(
-      collections(
-        object(await spotifyAPI('/me/playlists?limit=50')).items,
-        'playlist',
-      ),
-    );
-  }, []);
+    const p = await service.profile();
+    setProfile(p.name);
+    setPlaylists(p.playlists);
+  }, [service]);
   useEffect(() => {
     const changed = () => void refresh();
     window.addEventListener('headspace-playback-changed', changed);
@@ -403,10 +385,10 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       if (inFlight) return;
       inFlight = true;
       try {
-        const data = object(await spotifyAPI('/me/player/queue'));
+        const data = await service.queue();
         if (disposed) return;
-        setQueue(tracks(data.queue));
-        setQueueCurrent(parseTrack(data.currently_playing));
+        setQueue(data.items);
+        setQueueCurrent(data.current);
         setQueueError('');
       } catch (e) {
         if (!disposed)
@@ -437,38 +419,43 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       window.removeEventListener('headspace-playback-changed', changed);
       document.removeEventListener('visibilitychange', changed);
     };
-  }, [panel, connected, queueRevision]);
+  }, [panel, connected, queueRevision, service]);
   useEffect(() => {
     const resize = () =>
       setScale(Math.min(window.innerWidth / 760, window.innerHeight / 394));
     window.addEventListener('resize', resize);
     if (preview) return () => window.removeEventListener('resize', resize);
-    void initializeSession()
+    let active = true;
+    void service
+      .restore()
       .then(async (ok) => {
         void import('./analytics').catch((cause: unknown) => {
           console.error('Could not initialize Hexclave analytics', cause);
         });
+        if (!active) return;
         setConnected(ok);
         if (ok) {
           await loadProfile();
-          await startPlayer();
+          await service.start();
         }
       })
       .catch(report);
-    // oxlint-disable-next-line react/set-state-in-effect -- Read the embedded Spotify player when this subscription starts.
+    // oxlint-disable-next-line react/set-state-in-effect -- Read the embedded player when this subscription starts.
     void refresh();
     const timer = window.setInterval(() => {
       if (!document.hidden) void refresh();
     }, 1600);
     const oauth = (event: WindowEventMap['headspace-oauth']) => {
+      // Only Spotify signs in through the browser callback.
+      if (service.provider !== 'spotify') return;
       setAuthBusy(true);
       void completeSignIn(event.detail)
         .then(async (ok) => {
           setConnected(ok);
           if (ok) {
             await loadProfile();
-            disconnectPlayer();
-            await startPlayer();
+            service.stop();
+            await service.start();
             setPanel(null);
             setAuthURL('');
             setStatus('Spotify connected');
@@ -480,11 +467,12 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     };
     window.addEventListener('headspace-oauth', oauth);
     return () => {
+      active = false;
       clearInterval(timer);
       window.removeEventListener('resize', resize);
       window.removeEventListener('headspace-oauth', oauth);
     };
-  }, [preview, refresh, report, loadProfile]);
+  }, [preview, refresh, report, loadProfile, service]);
   useEffect(() => {
     const onError = (event: WindowEventMap['headspace-player-error']) => {
       setError(event.detail);
@@ -519,7 +507,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     if (preview) {
       return runControl(() => preview.command(method, args));
     }
-    return runControl(() => playbackCommand(method, args));
+    return runControl(() => service.command(method, args));
   }
   async function signIn() {
     if (preview) {
@@ -531,14 +519,46 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     setAuthBusy(true);
     setError('');
     try {
-      await connectSpotify();
-      const url = window.headspaceNative ? await native('authURL') : '';
-      setAuthURL(nativeText(url));
+      const result = await service.connect();
+      setAuthURL(result.authURL);
+      if (result.connected) {
+        setConnected(true);
+        await loadProfile();
+        await service.start();
+        setPanel(null);
+        setStatus(`${service.name} connected`);
+      }
     } catch (e) {
       report(e);
     } finally {
       setAuthBusy(false);
     }
+  }
+  function switchProvider(next: Provider) {
+    if (next === provider || preview) return;
+    service.stop();
+    storeProvider(next);
+    request.current += 1;
+    setProvider(next);
+    setConnected(false);
+    setProfile('');
+    setPlaylists([]);
+    setSongList([]);
+    setSongContext(null);
+    setSongContinuation(null);
+    setCollectionList([]);
+    setNext(null);
+    setActiveCollection(null);
+    setMode('recent');
+    setSearchKind('track');
+    setSaved(new Set());
+    setQueue([]);
+    setQueueCurrent(null);
+    setDevices([]);
+    setPlayback(emptyPlayback);
+    setAuthURL('');
+    setError('');
+    setStatus('');
   }
   const libraryRequest = useCallback(
     async (
@@ -559,97 +579,30 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         setCollectionList([]);
         setNext(null);
       }
-      let path = more || '';
-      if (!path) {
-        switch (selected) {
-          case 'playlists':
-            path = '/me/playlists?limit=50';
-            break;
-          case 'albums':
-            path = '/me/albums?limit=50';
-            break;
-          case 'artists':
-            path = '/me/following?type=artist&limit=50';
-            break;
-          case 'shows':
-            path = '/me/shows?limit=50';
-            break;
-          case 'liked':
-            path = '/me/tracks?limit=50';
-            break;
-          case 'recent':
-            path = '/me/player/recently-played?limit=50';
-            break;
-          case 'search':
-            path =
-              '/search?' +
-              new URLSearchParams({ q: search, type, limit: '10' });
-            break;
-          case 'collection':
-            if (!collection) {
-              setLoading(false);
-              return;
-            }
-            path =
-              collection.kind === 'playlist'
-                ? `/playlists/${collection.id}/items?limit=50`
-                : collection.kind === 'album'
-                  ? `/albums/${collection.id}/tracks?limit=50`
-                  : collection.kind === 'artist'
-                    ? `/artists/${collection.id}/albums?limit=50`
-                    : `/shows/${collection.id}/episodes?limit=50`;
-            break;
-        }
-      }
       try {
-        const raw = object(await spotifyAPI(path));
-        const page =
-          selected === 'search'
-            ? object(raw[type === 'show' ? 'shows' : type + 's'])
-            : selected === 'artists'
-              ? object(raw.artists)
-              : raw;
-        const kind =
-          selected === 'playlists'
-            ? 'playlist'
-            : selected === 'albums'
-              ? 'album'
-              : selected === 'artists'
-                ? 'artist'
-                : selected === 'shows'
-                  ? 'show'
-                  : selected === 'search' && type !== 'track'
-                    ? type
-                    : selected === 'collection' && collection?.kind === 'artist'
-                      ? 'album'
-                      : null;
-        let songs = kind
-          ? []
-          : tracks(page.items, isFiniteNumber(page.offset) ? page.offset : 0);
-        if (collection?.kind === 'album' && selected === 'collection')
-          songs = songs.map((t) => ({
-            ...t,
-            image: collection.image,
-            album: collection.name,
-          }));
-        const groups = kind ? collections(page.items, kind) : [];
+        const page = await service.library(
+          selected,
+          search,
+          type,
+          collection,
+          more,
+        );
+        const songs =
+          collection?.kind === 'album' && selected === 'collection'
+            ? page.songs.map((t) => ({
+                ...t,
+                image: collection.image,
+                album: collection.name,
+              }))
+            : page.songs;
         if (id !== request.current) return;
         setSongList((old) => (more ? [...old, ...songs] : songs));
-        setSongContext(
-          selected === 'collection' &&
-            collection &&
-            (collection.kind === 'album' || collection.kind === 'playlist')
-            ? collection.uri
-            : null,
+        setSongContext(page.context);
+        setCollectionList((old) =>
+          more ? [...old, ...page.collections] : page.collections,
         );
-        setCollectionList((old) => (more ? [...old, ...groups] : groups));
-        setSongContinuation(
-          selected === 'liked' ||
-            (selected === 'collection' && collection?.kind === 'show')
-            ? pagePath(page.next)
-            : null,
-        );
-        setNext(selected === 'recent' ? null : pagePath(page.next));
+        setSongContinuation(page.continuation);
+        setNext(page.next);
         if (selected === 'liked')
           setSaved((old) => new Set([...old, ...songs.map((t) => t.uri)]));
       } catch (e) {
@@ -663,7 +616,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         if (id === request.current) setLoading(false);
       }
     },
-    [report],
+    [report, service],
   );
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect -- Fetch account data when the external OAuth session connects.
@@ -681,13 +634,13 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       return;
     }
     if (!t.playable) {
-      setError('This track is unavailable on your Spotify account.');
+      setError(`This track is unavailable on your ${service.name} account.`);
       return;
     }
     void runControl(async () => {
       setStatus('Preparing playback...');
       try {
-        await playSelection(
+        await service.play(
           songContext
             ? { kind: 'context', uri: songContext, track: t }
             : {
@@ -709,31 +662,25 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       return;
     }
     void runControl(() =>
-      playSelection({ kind: 'context', uri: collection.uri }),
+      service.play({ kind: 'context', uri: collection.uri }),
     );
   }
   async function like(t: Track) {
     if (busy) return;
     setBusy(true);
     try {
-      const wasSaved =
-        saved.has(t.uri) ||
-        list(
-          await spotifyAPI(
-            '/me/library/contains?uris=' + encodeURIComponent(t.uri),
-          ),
-        )[0] === true;
-      await spotifyAPI(
-        '/me/library?uris=' + encodeURIComponent(t.uri),
-        wasSaved ? 'DELETE' : 'PUT',
-      );
+      const nowSaved = await service.toggleSaved(t, saved.has(t.uri));
       setSaved((old) => {
         const value = new Set(old);
-        if (wasSaved) value.delete(t.uri);
-        else value.add(t.uri);
+        if (nowSaved) value.add(t.uri);
+        else value.delete(t.uri);
         return value;
       });
-      setStatus(wasSaved ? 'Removed from Liked Songs' : 'Saved to Liked Songs');
+      setStatus(
+        nowSaved
+          ? `Saved to ${service.likedLabel}`
+          : `Removed from ${service.likedLabel}`,
+      );
     } catch (e) {
       report(e);
     } finally {
@@ -743,7 +690,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
   async function addQueue(t: Track) {
     if (!t.playable) return;
     if (await control('enqueue', { uri: t.uri }))
-      setStatus('Added to Spotify queue');
+      setStatus(`Added to ${service.name} queue`);
   }
   async function showQueue() {
     if (preview) {
@@ -767,16 +714,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     setPanel('devices');
     setLoading(true);
     try {
-      setDevices(
-        list(object(await spotifyAPI('/me/player/devices')).devices).flatMap(
-          (v) => {
-            const d = object(v);
-            return isJsonString(d.id) && isJsonString(d.name)
-              ? [{ id: d.id, name: d.name, active: d.is_active === true }]
-              : [];
-          },
-        ),
-      );
+      setDevices(await service.listDevices());
     } catch (e) {
       report(e);
     } finally {
@@ -787,13 +725,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     if (!newPlaylist.trim() || busy) return;
     setBusy(true);
     try {
-      const p = parseCollection(
-        await spotifyAPI('/me/playlists', 'POST', {
-          name: newPlaylist.trim(),
-          public: false,
-        }),
-        'playlist',
-      );
+      const p = await service.createPlaylist(newPlaylist.trim());
       if (p) {
         setPlaylists((old) => [p, ...old]);
         setNewPlaylist('');
@@ -810,9 +742,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     if (!adding || busy) return;
     setBusy(true);
     try {
-      await spotifyAPI(`/playlists/${p.id}/items`, 'POST', {
-        uris: [adding.uri],
-      });
+      await service.addToPlaylist(p, adding);
       setStatus('Added to ' + p.name);
       setAdding(null);
     } catch (e) {
@@ -862,12 +792,12 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   <input
                     className="old-slider"
                     type="range"
-                    aria-label="Balance unavailable for Spotify audio"
+                    aria-label={`Balance unavailable for ${service.name} audio`}
                     min={-100}
                     max={100}
                     value={0}
                     disabled
-                    title="Spotify does not expose audio balance"
+                    title={`${service.name} does not expose audio balance`}
                     readOnly
                   />
                   Balance
@@ -876,7 +806,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   <input
                     className="old-slider"
                     type="range"
-                    aria-label="Spotify volume"
+                    aria-label={`${service.name} volume`}
                     min={0}
                     max={100}
                     value={volume ?? playback.volume}
@@ -912,7 +842,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                         max={14}
                         value={value}
                         aria-label={`Visualizer band ${i + 1}`}
-                        title="Spectrum display gain. Spotify audio is unchanged."
+                        title={`Spectrum display gain. ${service.name} audio is unchanged.`}
                         onChange={(e) =>
                           setBands((old) =>
                             old.map((n, j) =>
@@ -935,7 +865,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                 <select
                   className="eq-preset"
                   aria-label="Visualizer preset"
-                  title="Visualizer presets adjust the spectrum display. Spotify audio is unchanged."
+                  title={`Visualizer presets adjust the spectrum display. ${service.name} audio is unchanged.`}
                   value={
                     BAND_PRESETS.find((preset) =>
                       preset.bands.every((value, i) => value === bands[i]),
@@ -1024,7 +954,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                         {activeCollection.name}
                       </option>
                     )}
-                  <option value="liked">Liked Songs</option>
+                  <option value="liked">{service.likedLabel}</option>
                   <option value="playlists">Music Library...</option>
                   {playlists.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -1087,7 +1017,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                     )
                   ) : (
                     <div className="mini-connect">
-                      <p>Spotify</p>
+                      <p>{service.name}</p>
                       <button onClick={() => setPanel('account')}>
                         Connect library
                       </button>
@@ -1103,7 +1033,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                 </div>
                 <div className="mini-toolbar">
                   <button
-                    title="Search Spotify"
+                    title={`Search ${service.name}`}
                     onClick={() => {
                       setPanel('library');
                       setMode('search');
@@ -1112,17 +1042,19 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                     Search
                   </button>
                   <button
-                    title="Spotify queue"
+                    title={`${service.name} queue`}
                     onClick={() => void showQueue()}
                   >
                     Queue
                   </button>
-                  <button
-                    title="Spotify devices"
-                    onClick={() => void showDevices()}
-                  >
-                    Devices
-                  </button>
+                  {service.devices && (
+                    <button
+                      title={`${service.name} devices`}
+                      onClick={() => void showDevices()}
+                    >
+                      Devices
+                    </button>
+                  )}
                 </div>
               </div>
             </>
@@ -1237,7 +1169,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
           <input
             className="seek-slider"
             aria-label="Seek"
-            title={`${playback.name || 'Spotify'} ${formatTime(seek ?? playback.position)} / ${formatTime(playback.duration)}`}
+            title={`${playback.name || service.name} ${formatTime(seek ?? playback.position)} / ${formatTime(playback.duration)}`}
             style={{ left: 39, top: 223 }}
             type="range"
             min={0}
@@ -1418,9 +1350,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
             panel === 'library'
               ? 'Headspace — Music Library'
               : panel === 'account'
-                ? 'Spotify Connection'
+                ? `${service.name} Connection`
                 : panel === 'queue'
-                  ? 'Spotify Queue'
+                  ? `${service.name} Queue`
                   : panel === 'devices'
                     ? 'Playback Devices'
                     : 'About Headspace'
@@ -1429,25 +1361,45 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         >
           {panel === 'account' && (
             <div className="account-content">
+              {!preview && (
+                <fieldset
+                  className="classic-tabs service-choice"
+                  aria-label="Music service"
+                >
+                  {(
+                    [
+                      [spotifyService.provider, spotifyService.name],
+                      [appleMusicService.provider, appleMusicService.name],
+                    ] satisfies [Provider, string][]
+                  ).map(([value, name]) => (
+                    <button
+                      key={value}
+                      aria-pressed={provider === value}
+                      className={provider === value ? 'active' : ''}
+                      disabled={authBusy}
+                      onClick={() => switchProvider(value)}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </fieldset>
+              )}
               <h2>
                 {connected
                   ? `Connected as ${profile}`
-                  : 'Connect your Spotify library'}
+                  : `Connect your ${service.name} library`}
               </h2>
               <p>
                 {connected
                   ? 'Your music and playlists are available in Headspace.'
-                  : 'Connect your Premium account to stream music directly in Headspace.'}
+                  : `Connect your ${service.name} account to stream music directly in Headspace.`}
               </p>
-              <p>Audio plays inside Headspace. Spotify Premium required.</p>
+              <p>Audio plays inside Headspace. {service.requirement}</p>
               <div className="classic-actions">
                 {connected ? (
                   <button
                     onClick={() => {
-                      disconnectPlayer();
-                      disconnect();
-                      if (window.headspaceNative)
-                        void native('clearSession').catch(report);
+                      void service.disconnect().catch(report);
                       setConnected(false);
                       setSongList([]);
                       setCollectionList([]);
@@ -1459,14 +1411,14 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   </button>
                 ) : (
                   <button disabled={authBusy} onClick={() => void signIn()}>
-                    {authBusy ? 'Connecting...' : 'Connect Spotify'}
+                    {authBusy ? 'Connecting...' : `Connect ${service.name}`}
                   </button>
                 )}
                 <button onClick={() => void control('reconnect')}>
                   Retry playback connection
                 </button>
                 <button disabled={authBusy} onClick={() => void signIn()}>
-                  Reconnect Spotify
+                  Reconnect {service.name}
                 </button>
               </div>
               {authURL && (
@@ -1486,7 +1438,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                 </details>
               )}
               <small>
-                Your sign-in is saved securely in your Mac Keychain.
+                {service.provider === 'spotify'
+                  ? 'Your sign-in is saved securely in your Mac Keychain.'
+                  : 'Apple Music keeps your sign-in in Headspace’s local storage.'}
               </small>
             </div>
           )}
@@ -1502,21 +1456,23 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                     'liked',
                     'recent',
                   ] satisfies LibraryMode[]
-                ).map((m) => (
-                  <button
-                    className={mode === m ? 'active' : ''}
-                    key={m}
-                    onClick={() => browse(m)}
-                  >
-                    {m === 'liked'
-                      ? 'Liked Songs'
-                      : m === 'shows'
-                        ? 'Podcasts'
-                        : m[0].toUpperCase() + m.slice(1)}
-                  </button>
-                ))}
+                )
+                  .filter((m) => m !== 'shows' || service.podcasts)
+                  .map((m) => (
+                    <button
+                      className={mode === m ? 'active' : ''}
+                      key={m}
+                      onClick={() => browse(m)}
+                    >
+                      {m === 'liked'
+                        ? service.likedLabel
+                        : m === 'shows'
+                          ? 'Podcasts'
+                          : m[0].toUpperCase() + m.slice(1)}
+                    </button>
+                  ))}
                 <button onClick={() => setPanel('account')}>
-                  {connected ? profile || 'Account' : 'Connect Spotify'}
+                  {connected ? profile || 'Account' : `Connect ${service.name}`}
                 </button>
               </div>
               <form
@@ -1529,9 +1485,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   else void libraryRequest('search', query, searchKind, null);
                 }}
               >
-                <label htmlFor="spotify-search">Search</label>
+                <label htmlFor="library-search">Search</label>
                 <input
-                  id="spotify-search"
+                  id="library-search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Song, artist, album..."
@@ -1555,7 +1511,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   <option value="album">Albums</option>
                   <option value="artist">Artists</option>
                   <option value="playlist">Playlists</option>
-                  <option value="show">Podcasts</option>
+                  {service.podcasts && <option value="show">Podcasts</option>}
                 </select>
                 <button type="submit" disabled={!query.trim() || loading}>
                   Go
@@ -1574,30 +1530,31 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                     disabled={busy}
                     onClick={() => {
                       setBusy(true);
-                      void spotifyAPI(
-                        '/me/library?uris=' +
-                          encodeURIComponent(activeCollection.uri),
-                        'PUT',
-                      )
-                        .then(() => setStatus('Saved to Spotify library'))
+                      void service
+                        .saveCollection(activeCollection)
+                        .then(() =>
+                          setStatus(`Saved to ${service.name} library`),
+                        )
                         .catch(report)
                         .finally(() => setBusy(false));
                     }}
                   >
                     Save
                   </button>
-                  <a href={activeCollection.url}>Open in Spotify ↗</a>
+                  {activeCollection.url && (
+                    <a href={activeCollection.url}>Open in {service.name} ↗</a>
+                  )}
                 </div>
               )}
               <div className="library-results">
                 {loading && !songList.length && !collectionList.length ? (
-                  <p className="library-empty">Loading Spotify...</p>
+                  <p className="library-empty">Loading {service.name}...</p>
                 ) : !connected ? (
                   <button
                     className="library-empty"
                     onClick={() => setPanel('account')}
                   >
-                    Connect Spotify to browse your music.
+                    Connect {service.name} to browse your music.
                   </button>
                 ) : !songList.length && !collectionList.length ? (
                   <p className="library-empty">
@@ -1673,7 +1630,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                       : 'off'}
                 </button>
                 <button onClick={() => void showQueue()}>Queue</button>
-                <button onClick={() => void showDevices()}>Devices</button>
+                {service.devices && (
+                  <button onClick={() => void showDevices()}>Devices</button>
+                )}
               </div>
             </div>
           )}
@@ -1704,7 +1663,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                       : 'off'}
                 </button>
                 <button onClick={() => void showQueue()}>Refresh</button>
-                <a href="https://open.spotify.com/queue">Edit in Spotify ↗</a>
+                {service.queueURL && (
+                  <a href={service.queueURL}>Edit in {service.name} ↗</a>
+                )}
               </div>
               {queueLoading ? (
                 <p>Loading queue...</p>
@@ -1731,8 +1692,9 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                 </>
               )}
               <p className="queue-help">
-                Queued songs play before the rest of your music. For similar
-                songs after it ends, enable Autoplay in Spotify settings.
+                Queued songs play before the rest of your music.
+                {service.provider === 'spotify' &&
+                  ' For similar songs after it ends, enable Autoplay in Spotify settings.'}
               </p>
             </div>
           )}
@@ -1748,10 +1710,8 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
                   disabled={busy}
                   onClick={() => {
                     setBusy(true);
-                    void spotifyAPI('/me/player', 'PUT', {
-                      device_ids: [d.id],
-                      play: playback.playing,
-                    })
+                    void service
+                      .transfer(d.id, playback.playing)
                       .then(() => showDevices())
                       .catch(report)
                       .finally(() => setBusy(false));
