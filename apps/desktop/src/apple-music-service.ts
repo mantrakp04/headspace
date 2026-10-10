@@ -232,6 +232,7 @@ export const appleMusicService: MusicService = {
   },
   stop() {
     generation += 1;
+    collectionRows.clear();
     const instance = music;
     if (instance)
       void Promise.resolve()
@@ -294,6 +295,8 @@ export const appleMusicService: MusicService = {
         : null;
     if (context) {
       const rows = (more && collectionRows.get(context)) || new Map();
+      // Only the open album or playlist can be played by row.
+      collectionRows.clear();
       for (const song of songList)
         if (song.contextPosition !== undefined)
           rows.set(song.contextPosition, song);

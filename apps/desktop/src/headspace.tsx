@@ -693,7 +693,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
           : `Removed from ${service.likedLabel}`,
       );
     } catch (e) {
-      report(e);
+      if (currentService.current === service) report(e);
     } finally {
       setBusy(false);
     }
@@ -745,7 +745,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
         setStatus('Private playlist created');
       }
     } catch (e) {
-      report(e);
+      if (currentService.current === service) report(e);
     } finally {
       setBusy(false);
     }
@@ -759,7 +759,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       setStatus('Added to ' + p.name);
       setAdding(null);
     } catch (e) {
-      report(e);
+      if (currentService.current === service) report(e);
     } finally {
       setBusy(false);
     }

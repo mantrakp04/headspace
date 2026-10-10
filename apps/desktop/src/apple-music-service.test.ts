@@ -264,6 +264,7 @@ void test('song lists queue the following songs and start on the selection', asy
   assert.deepEqual(queues, [
     { songs: ['1', 'i.two', '3', '4'], startWith: 1, startPlaying: false },
   ]);
+  assert.ok(calls.includes('play'));
   assert.equal(requests[0].url.searchParams.get('offset'), '3');
 });
 
