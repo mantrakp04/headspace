@@ -353,23 +353,25 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
       ),
     [service],
   );
-  const refresh = useCallback(async () => {
-    if (refreshing.current) return;
-    refreshing.current = true;
-    try {
-      setPlayback(
-        preview ? preview.readPlayback() : await service.readPlayback(),
-      );
-    } catch (e) {
-      report(e);
-    } finally {
-      refreshing.current = false;
-    }
-  }, [preview, report, service]);
   const currentService = useRef(service);
   useEffect(() => {
     currentService.current = service;
   }, [service]);
+  const refresh = useCallback(async () => {
+    if (refreshing.current) return;
+    refreshing.current = true;
+    try {
+      const next = preview
+        ? preview.readPlayback()
+        : await service.readPlayback();
+      // Drop a reading from the service the user just switched away from.
+      if (currentService.current === service) setPlayback(next);
+    } catch (e) {
+      if (currentService.current === service) report(e);
+    } finally {
+      refreshing.current = false;
+    }
+  }, [preview, report, service]);
   const loadProfile = useCallback(async () => {
     const p = await service.profile();
     // Drop a profile that finished loading after a service switch.
