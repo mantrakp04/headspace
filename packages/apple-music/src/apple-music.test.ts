@@ -149,6 +149,11 @@ void test('URIs round-trip to IDs and paths', () => {
   const catalog = collectionRef('apple-music:albums:42');
   assert.deepEqual(library, { type: 'playlists', library: true, id: 'p.abc' });
   assert.equal(collectionRef('apple-music:stations:1'), null);
+  assert.deepEqual(collectionRef('apple-music:playlists:pl.u-AbC123'), {
+    type: 'playlists',
+    library: false,
+    id: 'pl.u-AbC123',
+  });
   assert.equal(
     library && collectionPath(library, 'us'),
     '/v1/me/library/playlists/p.abc/tracks?limit=100',

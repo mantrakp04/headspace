@@ -238,9 +238,13 @@ void test('albums and playlists play as MusicKit containers starting at the chos
     uri: 'apple-music:library-playlists:p.abc',
   });
   assert.deepEqual(queues, [
-    { album: '900', startWith: '42', startPlaying: true },
-    { playlist: 'p.abc', startWith: undefined, startPlaying: true },
+    { album: '900', startWith: '42', startPlaying: false },
+    { playlist: 'p.abc', startWith: undefined, startPlaying: false },
   ]);
+  assert.deepEqual(
+    calls.filter((call) => call === 'play'),
+    ['play', 'play'],
+  );
   await assert.rejects(
     appleMusicService.play({ kind: 'context', uri: 'apple-music:artists:1' }),
     /album or playlist/,
@@ -258,9 +262,61 @@ void test('song lists queue the following songs and start on the selection', asy
     next: '/v1/me/library/songs?offset=3',
   });
   assert.deepEqual(queues, [
-    { songs: ['1', 'i.two', '3', '4'], startWith: 1, startPlaying: true },
+    { songs: ['1', 'i.two', '3', '4'], startWith: 1, startPlaying: false },
   ]);
   assert.equal(requests[0].url.searchParams.get('offset'), '3');
+});
+
+void test('a repeated song in a playlist starts at the clicked row', async () => {
+  await connect();
+  const playlist: Collection = {
+    id: 'pl.u-shared',
+    uri: 'apple-music:playlists:pl.u-shared',
+    name: 'Shared',
+    subtitle: '',
+    image: '',
+    kind: 'playlist',
+    url: '',
+  };
+  apiResponse = {
+    data: [
+      song('1'),
+      { id: '9', type: 'songs', attributes: { name: 'Gone' } },
+      song('2'),
+      song('1'),
+    ],
+  };
+  const page = await appleMusicService.library(
+    'collection',
+    '',
+    'track',
+    playlist,
+  );
+  assert.equal(page.context, playlist.uri);
+  await appleMusicService.play({
+    kind: 'context',
+    uri: playlist.uri,
+    track: page.songs[3],
+  });
+  assert.deepEqual(queues, [
+    { playlist: 'pl.u-shared', startWith: 2, startPlaying: false },
+  ]);
+});
+
+void test('switching services while a queue loads does not start Apple Music', async () => {
+  await connect();
+  const items = songs([song('1'), song('2')]);
+  apiResponse = { data: [song('3')] };
+  const playing = appleMusicService.play({
+    kind: 'tracks',
+    items,
+    index: 0,
+    next: '/v1/me/library/songs?offset=2',
+  });
+  appleMusicService.stop();
+  await playing;
+  assert.deepEqual(queues, []);
+  assert.ok(!calls.includes('play'));
 });
 
 void test('transport, seek, volume, shuffle and repeat drive MusicKit', async () => {

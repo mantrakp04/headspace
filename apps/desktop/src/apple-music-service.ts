@@ -42,6 +42,29 @@ export const tokenURL =
 
 let music: MusicKitInstance | null = null;
 let configuring: Promise<MusicKitInstance> | null = null;
+// Bumped by stop() so a play request still loading cannot start Apple Music
+// after the user switched services.
+let generation = 0;
+// Rows loaded for each album and playlist, by position, so a clicked row can
+// be found in MusicKit's queue even when the same song appears twice.
+const collectionRows = new Map<string, Map<number, Track>>();
+
+// MusicKit drops unplayable songs from the queue and matches string IDs to
+// their first occurrence, so pass the number of playable rows before the
+// selected one when every earlier row is known.
+function queueIndex(uri: string, track: Track): number | string {
+  const rows = collectionRows.get(uri);
+  const position = track.contextPosition;
+  if (!rows || position === undefined || rows.get(position)?.uri !== track.uri)
+    return track.id;
+  let index = 0;
+  for (let row = 0; row < position; row += 1) {
+    const earlier = rows.get(row);
+    if (!earlier) return track.id;
+    if (earlier.playable) index += 1;
+  }
+  return index;
+}
 
 function changed() {
   window.dispatchEvent(new Event('headspace-playback-changed'));
@@ -165,6 +188,7 @@ const emptyPage: LibraryPage = {
 export function resetAppleMusic() {
   music = null;
   configuring = null;
+  collectionRows.clear();
 }
 
 export const appleMusicService: MusicService = {
@@ -207,6 +231,7 @@ export const appleMusicService: MusicService = {
     await configure();
   },
   stop() {
+    generation += 1;
     const instance = music;
     if (instance)
       void Promise.resolve()
@@ -262,18 +287,28 @@ export const appleMusicService: MusicService = {
       selected === 'artists' ||
       (selected === 'search' && kind !== 'track') ||
       (selected === 'collection' && ref?.type === 'artists');
+    const songList = grouped ? [] : songs(page.data, pageOffset(more));
+    const context =
+      selected === 'collection' && collection && ref?.type !== 'artists'
+        ? collection.uri
+        : null;
+    if (context) {
+      const rows = (more && collectionRows.get(context)) || new Map();
+      for (const song of songList)
+        if (song.contextPosition !== undefined)
+          rows.set(song.contextPosition, song);
+      collectionRows.set(context, rows);
+    }
     return {
-      songs: grouped ? [] : songs(page.data, pageOffset(more)),
+      songs: songList,
       collections: grouped ? collections(page.data) : [],
-      context:
-        selected === 'collection' && collection && ref?.type !== 'artists'
-          ? collection.uri
-          : null,
+      context,
       continuation: selected === 'liked' ? nextPath(page.next) : null,
       next: selected === 'recent' ? null : nextPath(page.next),
     };
   },
   async play(selection) {
+    const current = generation;
     const instance = await session();
     if (selection.kind === 'context') {
       const ref = collectionRef(selection.uri);
@@ -282,10 +317,11 @@ export const appleMusicService: MusicService = {
       const track = selection.track;
       if (track && !track.playable)
         throw new Error('This track is unavailable.');
+      const startWith = track ? queueIndex(selection.uri, track) : undefined;
       await instance.setQueue(
         ref.type === 'albums'
-          ? { album: ref.id, startWith: track?.id, startPlaying: true }
-          : { playlist: ref.id, startWith: track?.id, startPlaying: true },
+          ? { album: ref.id, startWith, startPlaying: false }
+          : { playlist: ref.id, startWith, startPlaying: false },
       );
     } else {
       const queue = await resolveSongQueue(
@@ -294,12 +330,15 @@ export const appleMusicService: MusicService = {
         selection.next,
         (path) => request(credentials(instance), path),
       );
+      if (current !== generation) return;
       await instance.setQueue({
         songs: queue.songs,
         startWith: queue.startWith,
-        startPlaying: true,
+        startPlaying: false,
       });
     }
+    if (current !== generation) return;
+    await instance.play();
     changed();
   },
   async command(method, args = {}) {

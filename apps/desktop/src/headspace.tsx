@@ -678,6 +678,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     setBusy(true);
     try {
       const nowSaved = await service.toggleSaved(t, saved.has(t.uri));
+      if (currentService.current !== service) return;
       setSaved((old) => {
         const value = new Set(old);
         if (nowSaved) value.add(t.uri);
@@ -734,6 +735,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     setBusy(true);
     try {
       const p = await service.createPlaylist(newPlaylist.trim());
+      if (currentService.current !== service) return;
       if (p) {
         setPlaylists((old) => [p, ...old]);
         setNewPlaylist('');
@@ -751,6 +753,7 @@ export default function Headspace({ preview }: { preview?: PreviewPlayer }) {
     setBusy(true);
     try {
       await service.addToPlaylist(p, adding);
+      if (currentService.current !== service) return;
       setStatus('Added to ' + p.name);
       setAdding(null);
     } catch (e) {

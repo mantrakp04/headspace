@@ -38,7 +38,7 @@ export function trackID(uri: string): string | null {
 
 export function collectionRef(uri: string): CollectionRef | null {
   const match =
-    /^apple-music:(library-)?(albums|playlists|artists):([A-Za-z0-9.]+)$/.exec(
+    /^apple-music:(library-)?(albums|playlists|artists):([A-Za-z0-9.-]+)$/.exec(
       uri,
     );
   if (!match) return null;
