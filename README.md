@@ -1,6 +1,6 @@
 # Headspace for macOS
 
-A personal local Spotify player based on the original lime-green **Headspace Windows Media Player skin**. The app uses a borderless transparent Cocoa window, the original skin geometry, original bitmap artwork, and a React interface rendered by WKWebView.
+A personal local Spotify and Apple Music player based on the original lime-green **Headspace Windows Media Player skin**. The app uses a borderless transparent Cocoa window, the original skin geometry, original bitmap artwork, and a React interface rendered by WKWebView.
 
 ## Open
 
@@ -23,6 +23,16 @@ The Mac Keychain stores the Hexclave session refresh token and a cached Spotify 
 Open the library's account button and choose **Reconnect Spotify** to migrate an existing direct-PKCE session. Existing saved sessions remain usable until reconnection. Spotify Premium and developer-app account restrictions still apply; switching the token manager does not remove Spotify's access restrictions.
 
 Search, albums, playlists, liked songs, recent listening, podcasts, queue, devices, private-playlist creation, and playlist additions use Spotify's public Web API. Transport, seek, and volume use the embedded player; shuffle, repeat, and track selection target Headspace's device ID. Original equalizer sliders adjust the spectrum display gain. They do not process Spotify audio. Balance is unavailable through Spotify's interface. Offline downloads, lyrics, the personalized Spotify Home feed, and AI DJ are not reproduced in Headspace's UI.
+
+## Apple Music connection
+
+Choose **Apple Music** at the top of the account panel to switch services. Headspace remembers the choice and plays Apple Music through MusicKit on the Web inside the same window. An Apple Music subscription is required. MusicKit opens Apple's sign-in page in a separate window and keeps the sign-in in the web view's local storage, not the Keychain.
+
+Apple requires a developer token signed with a MusicKit private key. The site's `/api/apple-music/token` endpoint signs a six-month token, renewed once fewer than 30 days remain, that only works from Headspace's origins (`http://127.0.0.1:4382` and `http://127.0.0.1:4383`). The app fetches it on startup, so the key never ships in the app. To turn it on, create a MusicKit key for team `U5L5T3NGVV` in the Apple Developer account, then set the `APPLE_MUSIC_KEY_ID` and `APPLE_MUSIC_PRIVATE_KEY` project secrets in Hexclave. The private key is the full `.p8` file; escaped `\n` line breaks are accepted. Until both secrets exist, the endpoint returns 503 and Headspace says Apple Music is not set up.
+
+For local work, start the site with `APPLE_MUSIC_TEAM_ID`, `APPLE_MUSIC_KEY_ID` and `APPLE_MUSIC_PRIVATE_KEY` in its environment and set `VITE_APPLE_MUSIC_TOKEN_URL=http://127.0.0.1:4390/api/apple-music/token` for the player. The release app's Content Security Policy in `Headspace.swift` allows only the deployed site's origin for the token request, so moving the site means updating that policy and the default URL in `apple-music-service.ts`.
+
+The Apple Music library has Playlists, Albums, Artists, Songs and Recent tabs. Apple's API has no podcasts, playback devices or way to remove songs from a library, so Headspace hides those controls and the heart only adds songs. Songs can be added to library playlists you can edit. Playing from a long song list queues up to 50 songs before and 250 after the chosen one.
 
 ## Development
 
@@ -88,7 +98,7 @@ npm run lint
 npm run desktop:build
 ```
 
-The tests cover OAuth/session handling, API errors, catalog parsing, playback context, paginated song lists, duplicate tracks, queue targeting, transport, repeat/shuffle state, and SDK change notifications. Spotify HTTP and SDK responses are mocked. See [Spotify queue behavior and implementation](docs/spotify-queues.md) for the analysis, API limits, and verification notes.
+The tests cover OAuth/session handling, API errors, catalog parsing, playback context, paginated song lists, duplicate tracks, queue targeting, transport, repeat/shuffle state, and SDK change notifications. Spotify HTTP and SDK responses are mocked. Apple Music tests cover API parsing, developer token signing, song queues, and a mocked MusicKit instance. See [Spotify queue behavior and implementation](docs/spotify-queues.md) for the analysis, API limits, and verification notes.
 
 For a repeatable 10,000-row UI check, run `npm run dev:web` and open `http://127.0.0.1:4383/list-benchmark.html`. At 280px height it mounts 15 rows, including overscan. End jumps to Track 10000; selecting it shows its name. Switching the dataset resets the grid to 20 rows. This fixture is excluded from the packaged production entry point.
 

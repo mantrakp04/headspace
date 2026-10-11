@@ -63,15 +63,17 @@ final class LocalServer {
         send(connection, 200, mime, data)
     }
     private func send(_ connection: NWConnection, _ status: Int, _ mime: String, _ body: Data) {
-        let headers = "HTTP/1.1 \(status) \(status == 200 ? "OK" : "Error")\r\nContent-Type: \(mime)\r\nContent-Length: \(body.count)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self' https://sdk.scdn.co; frame-src https://sdk.scdn.co; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://image-cdn-ak.spotifycdn.com data:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://api.hexclave.com https://r.hexclave.com; frame-ancestors 'none'; base-uri 'none'\r\nConnection: close\r\n\r\n"
+        let headers = "HTTP/1.1 \(status) \(status == 200 ? "OK" : "Error")\r\nContent-Type: \(mime)\r\nContent-Length: \(body.count)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self' https://sdk.scdn.co https://js-cdn.music.apple.com; frame-src https://sdk.scdn.co; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.scdn.co https://mosaic.scdn.co https://image-cdn-ak.spotifycdn.com https://image-cdn-fa.spotifycdn.com https://image-cdn-ak.spotifycdn.com https://*.mzstatic.com data:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://api.hexclave.com https://r.hexclave.com https://hxc-p-53-si-870a3bb506b56ed0c0.fly.dev https://*.music.apple.com https://*.itunes.apple.com https://itunes.apple.com https://*.mzstatic.com; frame-ancestors 'none'; base-uri 'none'\r\nConnection: close\r\n\r\n"
         var output = Data(headers.utf8); output.append(body)
         connection.send(content: output, completion: .contentProcessed { _ in connection.cancel() })
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate, NSMenuItemValidation {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate, NSWindowDelegate, NSMenuItemValidation {
     var window: SkinWindow!
     var webView: WKWebView!
+    // Apple Music sign-in runs in a popup that reports back to MusicKit through window.opener.
+    var appleMusicWindow: NSWindow?
     var server: LocalServer!
     var pendingAuth: URL?
     let keychainService = "local.headspace.spotify"
@@ -98,6 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         webView = WKWebView(frame: .zero, configuration: config)
         webView.setValue(false, forKey: "drawsBackground")
         webView.navigationDelegate = self
+        webView.uiDelegate = self
         #if HEADSPACE_HMR
         webView.isInspectable = true
         #endif
@@ -148,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         view.addItem(withTitle:"Always on Top",action:#selector(onTop(_:)),keyEquivalent:"t")
         NSApp.mainMenu = menu
     }
-    @objc func about() { let alert=NSAlert();alert.messageText="Headspace";alert.informativeText="The original Windows Media Player Headspace skin, running locally on macOS with Spotify.\n\nOriginal skin © 2000 Microsoft Corporation.\nSpotify supplies the music.\n\nEnable system audio to make the visualizer and speakers react to this Mac’s audio output. Audio is analyzed locally and is never saved. EQ sliders shape the visualizer.";alert.runModal() }
+    @objc func about() { let alert=NSAlert();alert.messageText="Headspace";alert.informativeText="The original Windows Media Player Headspace skin, running locally on macOS with Spotify or Apple Music.\n\nOriginal skin © 2000 Microsoft Corporation.\nSpotify or Apple Music supplies the music.\n\nEnable system audio to make the visualizer and speakers react to this Mac’s audio output. Audio is analyzed locally and is never saved. EQ sliders shape the visualizer.";alert.runModal() }
     @objc func toggleUpdateChecks(_ sender: NSMenuItem) {
         updaterController.updater.automaticallyChecksForUpdates.toggle()
     }
@@ -170,8 +173,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         guard let url=navigationAction.request.url else { decisionHandler(.cancel);return }
         if navigationAction.targetFrame?.isMainFrame == false, url.scheme == "https", url.host == "sdk.scdn.co" { decisionHandler(.allow); return }
         if url.scheme == "http",url.host == "127.0.0.1",url.port == rendererPort { decisionHandler(.allow);return }
-        if ["accounts.spotify.com","developer.spotify.com","open.spotify.com"].contains(url.host ?? ""),url.scheme == "https" { NSWorkspace.shared.open(url) }
+        if navigationAction.targetFrame == nil, url.scheme == "https", url.host == "authorize.music.apple.com" { decisionHandler(.allow); return }
+        if ["accounts.spotify.com","developer.spotify.com","open.spotify.com","music.apple.com"].contains(url.host ?? ""),url.scheme == "https" { NSWorkspace.shared.open(url) }
         decisionHandler(.cancel)
+    }
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        guard let url = navigationAction.request.url, url.scheme == "https" else { return nil }
+        guard webView === self.webView, url.host == "authorize.music.apple.com" else {
+            // Links inside the sign-in page, such as password reset, open in the browser.
+            if webView !== self.webView { NSWorkspace.shared.open(url) }
+            return nil
+        }
+        appleMusicWindow?.close()
+        let size = NSSize(width: windowFeatures.width?.doubleValue ?? 480, height: windowFeatures.height?.doubleValue ?? 640)
+        let popup = WKWebView(frame: NSRect(origin: .zero, size: size), configuration: configuration)
+        popup.uiDelegate = self
+        let popupWindow = NSWindow(contentRect: popup.frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        popupWindow.title = "Sign in to Apple Music"
+        popupWindow.isReleasedWhenClosed = false
+        popupWindow.delegate = self
+        popupWindow.contentView = popup
+        popupWindow.center()
+        popupWindow.makeKeyAndOrderFront(nil)
+        appleMusicWindow = popupWindow
+        return popup
+    }
+    func webViewDidClose(_ webView: WKWebView) {
+        guard webView !== self.webView, webView.window === appleMusicWindow else { return }
+        appleMusicWindow?.close()
+    }
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === appleMusicWindow else { return }
+        // Releasing the page marks the popup closed, so MusicKit stops waiting for sign-in.
+        window.contentView = nil
+        appleMusicWindow = nil
     }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame, message.frameInfo.securityOrigin.host == "127.0.0.1", message.frameInfo.securityOrigin.protocol == "http", message.frameInfo.securityOrigin.port == rendererPort, let body=message.body as? [String:Any],let id=body["id"] as? Int,let method=body["method"] as? String else { return }

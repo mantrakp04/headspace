@@ -14,6 +14,7 @@
     "native:build": "python3 scripts/release.py build"
   },
   "dependencies": {
+    "@headspace/apple-music": "*",
     "@headspace/spotify": "*",
     "@hexclave/js": "1.0.113",
     "@tanstack/react-router": "1.170.32",
