@@ -51,7 +51,7 @@ export const Route = createFileRoute('/')({
           downloadUrl:
             'https://github.com/mantrakp04/headspace/releases/latest/download/Headspace.dmg',
           softwareRequirements:
-            'Apple silicon Mac. Spotify Premium and internet connection required for full playback.',
+            'Apple silicon Mac. Spotify Premium or an Apple Music subscription and an internet connection required for full playback.',
           author: {
             '@type': 'Person',
             name: 'barrel of lube',
@@ -147,7 +147,8 @@ function Home() {
       </section>
       <div className="hero-download page-chrome">
         <p className="player-hint">
-          A retro Spotify player for Mac. Try three previews, no sign-in.
+          A retro Spotify and Apple Music player for Mac. Try three previews, no
+          sign-in.
         </p>
         <a
           className="landing-download"
@@ -156,7 +157,7 @@ function Home() {
           <AppleMark /> Download for Mac
         </a>
         <p className="landing-requirements">
-          Apple silicon · macOS 14+ · Spotify Premium
+          Apple silicon · macOS 14+ · Spotify Premium or Apple Music
         </p>
       </div>
       <footer className="landing-footer page-chrome">
@@ -173,8 +174,8 @@ function Home() {
           / Carolyn Farino.
           <br />
           <span>
-            Independent project. Not affiliated with Microsoft, Spotify, or
-            Headspace meditation.
+            Independent project. Not affiliated with Microsoft, Spotify, Apple,
+            or Headspace meditation.
           </span>
         </p>
         <a href={`${repository}/releases`}>
